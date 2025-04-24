@@ -12,7 +12,7 @@ const featuredListings = [
     price: "$39,999",
     location: "San Francisco, CA",
     category: "Vehicles",
-    image: "../../public/images/carr.png",
+    image: "/images/carr.png",
     featured: true,
   },
   {
@@ -21,7 +21,7 @@ const featuredListings = [
     price: "$2,500/month",
     location: "New York, NY",
     category: "Properties",
-    image: "../../public/images/carr.png",
+    image: "/images/carr.png",
     featured: true,
   },
   {
@@ -30,7 +30,7 @@ const featuredListings = [
     price: "$899",
     location: "Chicago, IL",
     category: "Electronics",
-    image: "../../public/images/carr.png",
+    image: "/images/carr.png",
     featured: false,
   },
   {
@@ -39,7 +39,7 @@ const featuredListings = [
     price: "$1,200",
     location: "Austin, TX",
     category: "Furniture",
-    image: "../../public/images/carr.png",
+    image: "/images/carr.png",
     featured: false,
   },
   {
@@ -48,7 +48,7 @@ const featuredListings = [
     price: "$2,899",
     location: "Seattle, WA",
     category: "Computers",
-    image: "../../public/images/carr.png",
+    image: "/images/carr.png",
     featured: true,
   },
   {
@@ -57,7 +57,7 @@ const featuredListings = [
     price: "$3,299",
     location: "Denver, CO",
     category: "Sports",
-    image: "../../public/images/carr.png",
+    image: "/images/carr.png",
     featured: false,
   },
 ]
