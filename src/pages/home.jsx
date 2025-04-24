@@ -164,7 +164,7 @@ export default function Home() {
             </div>
             <div className="flex justify-center">
               <img
-                src="../../public/images/carr.png"
+                src="/images/carr.png"
                 alt="Illustration of selling online"
                 width={400}
                 height={400}

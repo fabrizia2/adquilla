@@ -19,7 +19,7 @@ const categoryData = {
         title: "2020 Tesla Model 3 Long Range",
         price: "$39,999",
         location: "San Francisco, CA",
-        image: "../../../public/images/carr.png",
+        image: "/images/carr.png",
         featured: true,
       },
       {
@@ -27,7 +27,7 @@ const categoryData = {
         title: "2019 Honda Civic EX - Low Miles",
         price: "$18,500",
         location: "Los Angeles, CA",
-        image: "../../../public/images/carr.png",
+        image: "/images/carr.png",
         featured: false,
       },
       {
@@ -35,7 +35,7 @@ const categoryData = {
         title: "2021 Ford F-150 XLT 4x4",
         price: "$42,999",
         location: "Dallas, TX",
-        image: "../../../public/images/carr.png",
+        image: "/images/carr.png",
         featured: false,
       },
       {
@@ -43,7 +43,7 @@ const categoryData = {
         title: "2018 Toyota Camry SE",
         price: "$19,750",
         location: "Miami, FL",
-        image: "../../../public/images/carr.png",
+        image: "/images/carr.png",
         featured: true,
       },
       {
@@ -51,7 +51,7 @@ const categoryData = {
         title: "2022 Chevrolet Tahoe LT",
         price: "$54,995",
         location: "Chicago, IL",
-        image: "../../../public/images/carr.png",
+        image: "/images/carr.png",
         featured: false,
       },
       {
@@ -59,7 +59,7 @@ const categoryData = {
         title: "2017 BMW 5 Series 540i",
         price: "$29,900",
         location: "Seattle, WA",
-        image: "../../../public/images/carr.png",
+        image: "/images/carr.png",
         featured: false,
       },
     ],
@@ -74,7 +74,7 @@ const categoryData = {
         title: "Modern 2-Bedroom Apartment",
         price: "$2,500/month",
         location: "New York, NY",
-        image: "../../../public/images/carr.png",
+        image: "/images/carr.png",
         featured: true,
       },
       {
@@ -82,7 +82,7 @@ const categoryData = {
         title: "3-Bedroom Single Family Home",
         price: "$450,000",
         location: "Austin, TX",
-        image: "../../../public/images/carr.png",
+        image: "/images/carr.png",
         featured: false,
       },
     ],
@@ -97,7 +97,7 @@ const categoryData = {
         title: "iPhone 14 Pro Max - 256GB",
         price: "$899",
         location: "Chicago, IL",
-        image: "../../../public/images/carr.png",
+        image: "/images/carr.png",
         featured: false,
       },
       {
@@ -105,7 +105,7 @@ const categoryData = {
         title: 'Samsung 65" QLED 4K Smart TV',
         price: "$799",
         location: "Houston, TX",
-        image: "../../../public/images/carr.png",
+        image: "/images/carr.png",
         featured: true,
       },
     ],
@@ -120,7 +120,7 @@ const categoryData = {
         title: "Leather Sectional Sofa",
         price: "$1,200",
         location: "Austin, TX",
-        image: "../../../public/images/carr.png",
+        image: "/images/carr.png",
         featured: false,
       },
       {
@@ -128,7 +128,7 @@ const categoryData = {
         title: "Queen Size Bed Frame with Storage",
         price: "$499",
         location: "Portland, OR",
-        image: "../../../public/images/carr.png",
+        image: "/images/carr.png",
         featured: true,
       },
     ],
@@ -143,7 +143,7 @@ const categoryData = {
         title: 'MacBook Pro 16" M2 Max',
         price: "$2,899",
         location: "Seattle, WA",
-        image: "../../../public/images/carr.png",
+        image: "/images/carr.png",
         featured: true,
       },
       {
@@ -151,7 +151,7 @@ const categoryData = {
         title: "Custom Gaming PC - RTX 4080, i9",
         price: "$2,499",
         location: "Las Vegas, NV",
-        image: "../../../public/images/carr.png",
+        image: "/images/carr.png",
         featured: false,
       },
     ],
@@ -166,7 +166,7 @@ const categoryData = {
         title: "Mountain Bike - Trek Fuel EX 8",
         price: "$3,299",
         location: "Denver, CO",
-        image: "../../../public/images/carr.png",
+        image: "/images/carr.png",
         featured: false,
       },
       {
@@ -174,7 +174,7 @@ const categoryData = {
         title: "Antique Wooden Chest - 19th Century",
         price: "$750",
         location: "Boston, MA",
-        image: "../../../public/images/carr.png",
+        image: "/images/carr.png",
         featured: true,
       },
     ],
@@ -240,7 +240,7 @@ export default function CategoryPage() {
               >
                 <div className="relative">
                   <img
-                    src={listing.image || "../../../public/images/carr.png"}
+                    src={listing.image || "/images/carr.png"}
                     alt={listing.title}
                     className="w-full h-48 object-cover"
                   />

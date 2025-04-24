@@ -25,10 +25,10 @@ const listingData = {
     verified: true,
   },
   images: [
-    "../../../public/images/carr.png",
-    "../../../public/images/carr.png",
-    "../../../public/images/carr.png",
-    "../../../public/images/carr.png",
+    "/images/carr.png",
+    "/images/carr.png",
+    "/images/carr.png",
+    "/images/carr.png",
   ],
   details: [
     { label: "Make", value: "Tesla" },
@@ -81,7 +81,7 @@ export default function ListingPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="relative aspect-video overflow-hidden rounded-lg">
                 <img
-                  src={listingData.images[0] || "../../../public/images/carr.png"}
+                  src={listingData.images[0] || "/images/carr.png"}
                   alt={listingData.title}
                   className="object-cover w-full h-full"
                 />
@@ -90,7 +90,7 @@ export default function ListingPage() {
                 {listingData.images.slice(1, 5).map((image, index) => (
                   <div key={index} className="relative aspect-square overflow-hidden rounded-lg">
                     <img
-                      src={image || "../../../public/images/carr.png"}
+                      src={image || "/images/carr.png"}
                       alt={`${listingData.title} - Image ${index + 2}`}
                       className="object-cover w-full h-full"
                     />
