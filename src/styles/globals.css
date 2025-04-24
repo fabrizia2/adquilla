@@ -1,0 +1,112 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 320 30% 99%;
+    --foreground: 320 30% 15%;
+
+    --card: 320 30% 99%;
+    --card-foreground: 320 30% 15%;
+
+    --popover: 320 30% 99%;
+    --popover-foreground: 320 30% 15%;
+
+    --primary: 325 80% 50%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 320 25% 94%;
+    --secondary-foreground: 320 30% 15%;
+
+    --muted: 320 20% 94%;
+    --muted-foreground: 320 10% 40%;
+
+    --accent: 320 25% 94%;
+    --accent-foreground: 320 30% 15%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 320 20% 88%;
+    --input: 320 20% 88%;
+    --ring: 325 80% 50%;
+
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 320 15% 12%;
+    --foreground: 0 0% 98%;
+
+    --card: 320 15% 12%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 320 15% 12%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 325 80% 60%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 320 15% 22%;
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 320 15% 22%;
+    --muted-foreground: 0 0% 90%;
+
+    --accent: 320 15% 22%;
+    --accent-foreground: 0 0% 98%;
+
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 320 15% 28%;
+    --input: 320 15% 28%;
+    --ring: 325 80% 60%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Custom utility classes for consistent category styling */
+.category-badge {
+  @apply bg-brand-magenta-500 text-white hover:bg-white hover:text-brand-magenta-700 transition-colors border border-transparent hover:border-brand-magenta-500 font-medium px-3 py-1 rounded-full;
+}
+
+.category-pill {
+  @apply inline-block bg-brand-magenta-500 text-white px-3 py-1 rounded-full hover:bg-white hover:text-brand-magenta-700 transition-colors border border-transparent hover:border-brand-magenta-500;
+}
+
+/* Add basic animation classes to replace the tailwindcss-animate plugin */
+.animate-accordion-down {
+  animation: accordion-down 0.2s ease-out;
+}
+
+.animate-accordion-up {
+  animation: accordion-up 0.2s ease-out;
+}
+
+@keyframes accordion-down {
+  from {
+    height: 0;
+  }
+  to {
+    height: var(--radix-accordion-content-height);
+  }
+}
+
+@keyframes accordion-up {
+  from {
+    height: var(--radix-accordion-content-height);
+  }
+  to {
+    height: 0;
+  }
+}
