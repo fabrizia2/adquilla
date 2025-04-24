@@ -9,7 +9,7 @@ export default function RootLayout() {
         <div className="container flex items-center justify-between h-16 px-4 md:px-6">
           <Link to="/" className="flex items-center gap-2 text-lg font-semibold text-gray-900">
             <ShoppingBag className="h-5 w-5 text-brand-magenta-500" />
-            <span>Adaquilla</span>
+            <span>Adaquila</span>
           </Link>
           <div className="flex items-center gap-4">
             <Link to="/auth/login">
@@ -31,7 +31,7 @@ export default function RootLayout() {
           <div className="flex flex-col gap-2 md:gap-4 lg:gap-6">
             <Link to="/" className="flex items-center gap-2 text-lg font-semibold text-gray-900">
               <ShoppingBag className="h-5 w-5 text-brand-magenta-500" />
-              <span>Adaquilla</span>
+              <span>Adaquila</span>
             </Link>
             <p className="text-sm text-gray-700 font-medium">Powering Ads, Elevating Brands</p>
           </div>
