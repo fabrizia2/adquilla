@@ -12,7 +12,7 @@ const listingData = {
   title: "2020 Tesla Model 3 Long Range",
   price: "$39,999",
   description:
-    "Excellent condition 2020 Tesla Model 3 Long Range with only 25,000 miles. Dual motor all-wheel drive, premium interior, autopilot, and full self-driving capability. Pearl white multi-coat exterior with black interior. Includes charging cable and adapters. No accidents, clean title.",
+    "Excellent condition 2020 Tesla Model 3 Long Range with only 25,000 miles. Dual motor all-wheel drive, premium interior, autopilot, and full self-driving capability. Pearl black multi-coat exterior with black interior. Includes charging cable and adapters. No accidents, clean title.",
   location: "San Francisco, CA",
   category: "Vehicles",
   subcategory: "Cars",
@@ -37,7 +37,7 @@ const listingData = {
     { label: "Mileage", value: "25,000 miles" },
     { label: "Fuel Type", value: "Electric" },
     { label: "Transmission", value: "Automatic" },
-    { label: "Color", value: "Pearl White" },
+    { label: "Color", value: "Pearl black" },
     { label: "VIN", value: "5YJ3E1EA1LF123456" },
   ],
   postedDate: "3 days ago",
@@ -49,26 +49,26 @@ export default function ListingPage() {
   const { id } = useParams()
 
   return (
-    <main className="flex-1 py-6 md:py-12">
+    <main className="flex-1 py-6 md:py-12 bg-white border">
       <div className="container px-4 md:px-6">
         <div className="grid gap-6 lg:grid-cols-3 lg:gap-12">
           <div className="lg:col-span-2 space-y-6">
             <div className="flex flex-col gap-2">
               <div className="flex items-center gap-2 flex-wrap">
-                <Badge className="bg-brand-magenta-500 text-white hover:bg-white hover:text-brand-magenta-700 transition-colors border border-transparent hover:border-brand-magenta-500">
+                <Badge className="bg-brand-magenta-600 text-black hover:bg-black hover:text-brand-magenta-700 transition-colors border border-transparent hover:border-brand-magenta-600">
                   {listingData.category}
                 </Badge>
-                <Badge className="bg-brand-magenta-500 text-white hover:bg-white hover:text-brand-magenta-700 transition-colors border border-transparent hover:border-brand-magenta-500">
+                <Badge className="bg-brand-magenta-600 text-black hover:bg-black hover:text-brand-magenta-700 transition-colors border border-transparent hover:border-brand-magenta-600">
                   {listingData.subcategory}
                 </Badge>
                 {listingData.featured && (
-                  <Badge className="bg-brand-magenta-500 hover:bg-brand-magenta-600 text-white font-medium">
+                  <Badge className="bg-brand-magenta-600 hover:bg-brand-magenta-600 text-black font-medium">
                     Featured
                   </Badge>
                 )}
               </div>
-              <h1 className="text-2xl font-bold md:text-3xl text-gray-200">{listingData.title}</h1>
-              <div className="flex items-center gap-2 text-gray-300">
+              <h1 className="text-2xl font-bold md:text-3xl text-gray-800">{listingData.title}</h1>
+              <div className="flex items-center gap-2 text-gray-500">
                 <MapPin className="h-4 w-4" />
                 <span>{listingData.location}</span>
                 <span className="text-sm">•</span>
@@ -78,7 +78,7 @@ export default function ListingPage() {
               <p className="text-2xl font-bold text-brand-magenta-600">{listingData.price}</p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border py-2 px-2">
               <div className="relative aspect-video overflow-hidden rounded-lg">
                 <img
                   src={listingData.images[0] || "/images/carr.png"}
@@ -100,17 +100,17 @@ export default function ListingPage() {
             </div>
 
             <div className="space-y-4">
-              <h2 className="text-xl font-bold text-gray-400">Description</h2>
-              <p className="text-gray-200 leading-relaxed">{listingData.description}</p>
+              <h2 className="text-xl font-bold text-gray-700">Description</h2>
+              <p className="text-gray-500 leading-relaxed">{listingData.description}</p>
             </div>
 
             <div className="space-y-4">
-              <h2 className="text-xl font-bold text-gray-400">Details</h2>
+              <h2 className="text-xl font-bold text-gray-700">Details</h2>
               <div className="grid grid-cols-2 gap-4">
                 {listingData.details.map((detail, index) => (
                   <div key={index} className="flex justify-between">
-                    <span className="font-medium text-gray-400">{detail.label}:</span>
-                    <span className="text-gray-200">{detail.value}</span>
+                    <span className="font-medium text-gray-600">{detail.label}:</span>
+                    <span className="text-gray-500">{detail.value}</span>
                   </div>
                 ))}
               </div>
@@ -140,7 +140,7 @@ export default function ListingPage() {
                   </div>
                 </div>
                 <div className="grid grid-cols-1 gap-2">
-                  <Button className="w-full bg-brand-magenta-500 hover:bg-brand-magenta-600 text-white font-medium">
+                  <Button className="w-full bg-brand-magenta-600 hover:bg-brand-magenta-600 text-black font-medium">
                     <Phone className="mr-2 h-4 w-4" /> Show Phone Number
                   </Button>
                   <Button

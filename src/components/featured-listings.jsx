@@ -70,26 +70,26 @@ export default function FeaturedListings() {
       {featuredListings.map((listing) => (
         <Card
           key={listing.id}
-          className="overflow-hidden h-full transition-all hover:shadow-lg cursor-pointer border-gray-200 hover:border-brand-magenta-300"
+          className="overflow-hidden h-full transition-all hover:shadow-lg cursor-pointer bg-white border-gray-200 hover:border-brand-magenta-300"
           onClick={() => navigate(`/listing/${listing.id}`)}
         >
           <div className="relative">
             <img src={listing.image || "/placeholder.svg"} alt={listing.title} className="w-full h-48 object-cover" />
             {listing.featured && (
-              <Badge className="absolute top-2 right-2 bg-brand-magenta-500 hover:bg-brand-magenta-600 text-white font-medium">
+              <Badge className="absolute top-2 right-2 bg-brand-magenta-600 hover:bg-brand-magenta-600 text-white font-medium">
                 Featured
               </Badge>
             )}
           </div>
           <CardHeader className="p-4 pb-0">
-            <h3 className="text-lg font-medium line-clamp-1 text-gray-300">{listing.title}</h3>
+            <h3 className="text-lg font-medium line-clamp-1 text-gray-800">{listing.title}</h3>
           </CardHeader>
           <CardContent className="p-4 pt-2">
             <p className="text-xl font-bold text-brand-magenta-600">{listing.price}</p>
-            <p className="text-sm text-gray-400">{listing.location}</p>
+            <p className="text-sm text-gray-600">{listing.location}</p>
           </CardContent>
           <CardFooter className="p-4 pt-0 border-t border-gray-200">
-            <Badge className="bg-brand-magenta-500 text-white hover:bg-white hover:text-brand-magenta-700 transition-colors border border-transparent hover:border-brand-magenta-500">
+            <Badge className="bg-brand-magenta-600 text-white hover:bg-white hover:text-brand-magenta-700 transition-colors border border-transparent hover:border-brand-magenta-500">
               {listing.category}
             </Badge>
           </CardFooter>

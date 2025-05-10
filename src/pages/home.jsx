@@ -29,13 +29,13 @@ export default function Home() {
   ]
 
   return (
-    <main className="flex-1">
+    <main className="flex-1 bg-white">
       {/* Hero Section */}
       <section className="relative w-full h-[90vh] flex items-center justify-center overflow-hidden">
         {/* YouTube Background Video */}
-        <div className="absolute top-0 left-0 w-full h-full z-0 pointer-events-none">
+        <div className="absolute top-0 left-0 w-full h-full z-0 pointer-events-none bg-white">
           <iframe
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover bg-white"
             src="https://www.youtube.com/embed/O9vO_CVNXlg?autoplay=1&mute=1&controls=0&loop=1&playlist=O9vO_CVNXlg&modestbranding=1&showinfo=0"
             title="AdShare Background Video"
             allow="autoplay; fullscreen"
@@ -45,7 +45,7 @@ export default function Home() {
         </div>
 
         {/* Dark overlay */}
-        <div className="absolute inset-0 bg-black bg-opacity-60 z-10" />
+        <div className="absolute inset-0 bg-white bg-opacity-10 z-10" />
 
         {/* Hero Content */}
         <div className="relative z-20 text-center text-white px-4 max-w-3xl">
@@ -55,7 +55,7 @@ export default function Home() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1 }}
           >
-            Powering Ads, <span className="text-brand-magenta-300">Elevating Brands</span>
+            Powering Ads, <span className="text-pink-600">Elevating Brands</span>
           </motion.h1>
 
           <motion.p
@@ -76,7 +76,7 @@ export default function Home() {
             />
           </div>
 
-          <Button className="mt-4 px-8 py-3 rounded-full bg-brand-magenta-500 hover:bg-brand-magenta-600 text-white font-semibold shadow-lg transition">
+          <Button className="mt-4 px-8 py-3 rounded-full bg-pink-600 text-white font-semibold shadow-lg transition">
             Search
           </Button>
         </div>
@@ -86,7 +86,7 @@ export default function Home() {
       <section className="w-full py-20 bg-white">
         <div className="container px-4 md:px-6 text-center">
           <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">Browse Categories</h2>
-          <p className="text-gray-600 mb-10 max-w-xl mx-auto">
+          <p className="text-gray-900 mb-10 max-w-xl mx-auto">
             Find exactly what you're looking for in our organized categories.
           </p>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6 max-w-7xl mx-auto">
@@ -96,15 +96,15 @@ export default function Home() {
                 onClick={() => navigate(category.href)}
                 className="cursor-pointer transition-transform hover:scale-105"
               >
-                <Card className="hover:shadow-md transition border border-gray-200 hover:border-brand-magenta-300 group">
+                <Card className="hover:shadow-md transition border border-gray-800 hover:border-brand-magenta-300 group bg-white">
                   <CardContent className="p-6 flex flex-col items-center text-center h-60 justify-center">
-                    <div className="mb-4 rounded-full bg-brand-magenta-500 p-3 text-white">
+                    <div className="mb-4 rounded-full bg-brand-magenta-600 p-3 text-white">
                       {category.icon}
                     </div>
-                    <div className="bg-brand-magenta-500 text-white px-4 py-1.5 rounded-full font-medium group-hover:bg-white group-hover:text-brand-magenta-700 transition-colors border border-transparent group-hover:border-brand-magenta-500">
+                    <div className="bg-brand-magenta-600 text-white px-5 py-1.5 rounded-full font-medium group-hover:bg-white group-hover:text-brand-magenta-700 transition-colors border border-transparent group-hover:border-brand-magenta-500">
                       {category.title}
                     </div>
-                    <p className="text-sm text-gray-400 mt-2">{category.count} listings</p>
+                    <p className="text-sm text-gray-500 mt-2">{category.count} listings</p>
                   </CardContent>
                 </Card>
               </div>
@@ -114,7 +114,7 @@ export default function Home() {
       </section>
 
       {/* Featured Listings */}
-      <section className="w-full py-20 bg-brand-magenta-50">
+      <section className="w-full py-20 bg-brand-magenta-20 border border-brand-magenta-200 shadow-xl rounded-lg">
         <div className="container px-4 md:px-6 text-center">
           <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">Featured Listings</h2>
           <p className="text-gray-600 mb-10 max-w-xl mx-auto">
@@ -124,7 +124,7 @@ export default function Home() {
           <Button
             variant="outline"
             size="lg"
-            className="mt-8 border-brand-magenta-400 text-brand-magenta-600 hover:bg-brand-magenta-500 font-medium"
+            className="mt-8 border-brand-magenta-400 text-brand-magenta-600 hover:bg-brand-magenta-600 font-medium"
           >
             View All Listings
           </Button>
@@ -136,7 +136,7 @@ export default function Home() {
         <div className="container px-4 md:px-6">
           <div className="grid gap-10 lg:grid-cols-2 items-center">
             <div className="space-y-5">
-              <div className="inline-block rounded-lg bg-brand-magenta-500 px-3 py-1 text-sm text-white font-medium">
+              <div className="inline-block rounded-lg bg-brand-magenta-600 px-3 py-1 text-sm text-white font-medium">
                 Sell Fast
               </div>
               <h2 className="text-3xl sm:text-4xl font-bold text-gray-900">
@@ -147,7 +147,7 @@ export default function Home() {
               </p>
               <div className="flex flex-col gap-2 sm:flex-row">
                 <Link to="/auth/register">
-                  <Button size="lg" className="bg-brand-magenta-500 hover:bg-brand-magenta-600 text-white font-semibold">
+                  <Button size="lg" className="bg-brand-magenta-600 hover:bg-black text-white font-semibold">
                     Get Started
                   </Button>
                 </Link>
@@ -155,7 +155,7 @@ export default function Home() {
                   <Button
                     variant="outline"
                     size="lg"
-                    className="border-gray-300 text-gray-300 hover:bg-gray-400 font-medium"
+                    className="border-gray-300 text-gray-300 hover:bg-brand-magenta-600 font-medium"
                   >
                     Learn More
                   </Button>

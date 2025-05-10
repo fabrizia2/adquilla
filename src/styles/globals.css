@@ -77,11 +77,11 @@
 
 /* Custom utility classes for consistent category styling */
 .category-badge {
-  @apply bg-brand-magenta-500 text-white hover:bg-white hover:text-brand-magenta-700 transition-colors border border-transparent hover:border-brand-magenta-500 font-medium px-3 py-1 rounded-full;
+  @apply bg-pink-600 text-white hover:bg-white hover:text-brand-magenta-700 transition-colors border border-transparent hover:border-pink-600 font-medium px-3 py-1 rounded-full;
 }
 
 .category-pill {
-  @apply inline-block bg-brand-magenta-500 text-white px-3 py-1 rounded-full hover:bg-white hover:text-brand-magenta-700 transition-colors border border-transparent hover:border-brand-magenta-500;
+  @apply inline-block bg-pink-600 text-white px-3 py-1 rounded-full hover:bg-white hover:text-brand-magenta-700 transition-colors border border-transparent hover:border-pink-600;
 }
 
 /* Add basic animation classes to replace the tailwindcss-animate plugin */

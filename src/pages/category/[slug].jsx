@@ -25,7 +25,7 @@ const categoryData = {
       {
         id: 2,
         title: "2019 Honda Civic EX - Low Miles",
-        price: "$18,500",
+        price: "$18,600",
         location: "Los Angeles, CA",
         image: "/images/carr.png",
         featured: false,
@@ -72,7 +72,7 @@ const categoryData = {
       {
         id: 1,
         title: "Modern 2-Bedroom Apartment",
-        price: "$2,500/month",
+        price: "$2,600/month",
         location: "New York, NY",
         image: "/images/carr.png",
         featured: true,
@@ -193,12 +193,12 @@ export default function CategoryPage() {
 
   return (
     <main className="flex-1">
-      <section className="w-full py-6 md:py-12 bg-gradient-to-b from-brand-magenta-50 to-white">
+      <section className="w-full py-6 md:py-12 bg-white border border-gray-300 shadow-inner">
         <div className="container px-4 md:px-6">
           <div className="flex flex-col items-start space-y-4">
             <div className="space-y-2">
               <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl text-gray-900">
-                <span className="bg-brand-magenta-500 text-white px-4 py-1 rounded-md inline-block">
+                <span className="bg-brand-magenta-600 text-white px-4 py-2 rounded-md inline-block">
                   {category.title}
                 </span>
               </h1>
@@ -208,11 +208,11 @@ export default function CategoryPage() {
             </div>
             <div className="w-full flex flex-col sm:flex-row gap-4">
               <div className="relative flex-1">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-600" />
                 <Input
                   type="search"
                   placeholder={`Search in ${category.title.toLowerCase()}...`}
-                  className="pl-8 w-full border-gray-300 focus:border-brand-magenta-500 focus:ring-brand-magenta-500"
+                  className="pl-8 w-full border-gray-300 focus:border-brand-magenta-600 focus:ring-brand-magenta-600"
                 />
               </div>
               <Button
@@ -223,7 +223,7 @@ export default function CategoryPage() {
                 Filters
                 <ChevronDown className="h-4 w-4 ml-1" />
               </Button>
-              <Button className="bg-brand-magenta-500 hover:bg-brand-magenta-600 text-white font-medium">Search</Button>
+              <Button className="bg-brand-magenta-600 hover:bg-brand-magenta-600 text-white font-medium">Search</Button>
             </div>
           </div>
         </div>
@@ -235,7 +235,7 @@ export default function CategoryPage() {
             {category.listings.map((listing) => (
               <Card
                 key={listing.id}
-                className="overflow-hidden h-full transition-all hover:shadow-lg cursor-pointer border-gray-200 hover:border-brand-magenta-300"
+                className="overflow-hidden h-full transition-all hover:shadow-lg cursor-pointer border-gray-200 hover:border-brand-magenta-300 bg-white"
                 onClick={() => navigate(`/listing/${listing.id}`)}
               >
                 <div className="relative">
@@ -245,7 +245,7 @@ export default function CategoryPage() {
                     className="w-full h-48 object-cover"
                   />
                   {listing.featured && (
-                    <Badge className="absolute top-2 right-2 bg-brand-magenta-500 hover:bg-brand-magenta-600 text-white font-medium">
+                    <Badge className="absolute top-2 right-2 bg-brand-magenta-600 hover:bg-brand-magenta-600 text-white font-medium">
                       Featured
                     </Badge>
                   )}
@@ -255,10 +255,10 @@ export default function CategoryPage() {
                 </CardHeader>
                 <CardContent className="p-4 pt-2">
                   <p className="text-xl font-bold text-brand-magenta-600">{listing.price}</p>
-                  <p className="text-sm text-gray-300">{listing.location}</p>
+                  <p className="text-sm text-gray-500">{listing.location}</p>
                 </CardContent>
                 <CardFooter className="p-4 pt-0 border-t border-gray-200">
-                  <Badge className="bg-brand-magenta-500 text-white hover:bg-white hover:text-brand-magenta-700 transition-colors border border-transparent hover:border-brand-magenta-500">
+                  <Badge className="bg-brand-magenta-600 text-white hover:bg-white hover:text-brand-magenta-700 transition-colors border border-transparent hover:border-brand-magenta-600 mt-3">
                     {category.title}
                   </Badge>
                 </CardFooter>
@@ -271,7 +271,7 @@ export default function CategoryPage() {
               <Button
                 variant="outline"
                 size="lg"
-                className="border-brand-magenta-400 text-brand-magenta-600 hover:bg-brand-magenta-500 font-medium"
+                className="border-brand-magenta-400 text-brand-magenta-600 hover:bg-brand-magenta-600 font-medium"
               >
                 Load More
               </Button>
@@ -281,13 +281,13 @@ export default function CategoryPage() {
           {category.listings.length === 0 && (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <div className="rounded-full bg-brand-magenta-100 p-6 mb-4">
-                <ShoppingBag className="h-10 w-10 text-brand-magenta-500" />
+                <ShoppingBag className="h-10 w-10 text-brand-magenta-600" />
               </div>
               <h3 className="text-xl font-medium text-gray-900">No listings found</h3>
               <p className="text-gray-700 mt-2 mb-6">There are currently no listings in this category.</p>
               <Button
                 onClick={() => navigate("/create-listing")}
-                className="bg-brand-magenta-500 hover:bg-brand-magenta-600 text-white font-medium"
+                className="bg-brand-magenta-600 hover:bg-brand-magenta-600 text-white font-medium"
               >
                 Create a Listing
               </Button>
