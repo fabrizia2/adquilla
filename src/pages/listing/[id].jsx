@@ -1,52 +1,123 @@
-"use client"
+"use client";
 
-import { useParams } from "react-router-dom"
-import { Button } from "../../components/ui/button"
-import { Badge } from "../../components/ui/badge"
-import { Card, CardContent } from "../../components/ui/card"
-import { Calendar, Heart, MapPin, MessageCircle, Phone, Share2, User } from "../../components/icons"
-
-// Mock data for a single listing
-const listingData = {
-  id: 1,
-  title: "2020 Tesla Model 3 Long Range",
-  price: "$39,999",
-  description:
-    "Excellent condition 2020 Tesla Model 3 Long Range with only 25,000 miles. Dual motor all-wheel drive, premium interior, autopilot, and full self-driving capability. Pearl black multi-coat exterior with black interior. Includes charging cable and adapters. No accidents, clean title.",
-  location: "San Francisco, CA",
-  category: "Vehicles",
-  subcategory: "Cars",
-  condition: "Used - Excellent",
-  seller: {
-    name: "Alex Johnson",
-    memberSince: "January 2019",
-    listings: 12,
-    rating: 4.9,
-    verified: true,
-  },
-  images: [
-    "/images/carr.png",
-    "/images/carr.png",
-    "/images/carr.png",
-    "/images/carr.png",
-  ],
-  details: [
-    { label: "Make", value: "Tesla" },
-    { label: "Model", value: "Model 3" },
-    { label: "Year", value: "2020" },
-    { label: "Mileage", value: "25,000 miles" },
-    { label: "Fuel Type", value: "Electric" },
-    { label: "Transmission", value: "Automatic" },
-    { label: "Color", value: "Pearl black" },
-    { label: "VIN", value: "5YJ3E1EA1LF123456" },
-  ],
-  postedDate: "3 days ago",
-  views: 243,
-  featured: true,
-}
+import React, { useState, useEffect } from 'react';
+import { useParams } from "react-router-dom";
+import { Button } from "../../components/ui/button";
+import { Badge } from "../../components/ui/badge";
+import { Card, CardContent } from "../../components/ui/card";
+import { Calendar, Heart, MapPin, MessageCircle, Phone, Share2, User } from "../../components/icons";
+import { toast } from "react-hot-toast"; // Assuming you have react-hot-toast for notifications
 
 export default function ListingPage() {
-  const { id } = useParams()
+  const { id } = useParams();
+  const [listingData, setListingData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [showPhoneNumber, setShowPhoneNumber] = useState(false); // State for phone number visibility
+
+  useEffect(() => {
+    const fetchListing = async () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const response = await fetch(`https://backend-nhs9.onrender.com/api/listings/${id}`);
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to fetch listing');
+        }
+
+        const data = await response.json();
+        setListingData(data);
+      } catch (err) {
+        console.error("Error fetching listing:", err);
+        setError(`Failed to load listing: ${err.message}`);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (id) {
+      fetchListing();
+    }
+  }, [id]);
+
+  // Handler for "Show Phone Number" button
+  const handleShowPhoneNumber = () => {
+    if (listingData?.user?.phone) { // Access phone via listingData.user
+      setShowPhoneNumber(prev => !prev); // Toggle visibility
+      toast.success(showPhoneNumber ? "Phone number hidden" : "Phone number displayed!");
+    } else {
+      toast.error("Phone number not available for this seller.");
+    }
+  };
+
+  // Handler for "Message Seller" button
+  const handleMessageSeller = () => {
+    if (listingData?.user?._id) { // Access user ID via listingData.user
+      console.log(`Navigating to chat with seller ID: ${listingData.user._id}`);
+      toast.info(`Simulating message to seller ${listingData.user._id}.`);
+      // In a real application, you would navigate to a chat page like:
+      // navigate(`/chat/${listingData.user._id}`);
+    } else {
+      toast.error("Cannot message seller: User ID not available.");
+    }
+  };
+
+  // Handler for "Save" button
+  const handleSaveListing = () => {
+    toast.info("Save feature coming soon!");
+    console.log("Save Listing clicked for ID:", listingData._id);
+    // Implement save logic here (e.g., add to user's favorites)
+  };
+
+  // Handler for "Share" button
+  const handleShareListing = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: listingData.title,
+        text: listingData.description,
+        url: window.location.href, // Current URL of the listing
+      }).then(() => {
+        toast.success("Listing shared successfully!");
+      }).catch((error) => {
+        console.error('Error sharing:', error);
+        toast.error("Failed to share listing.");
+      });
+    } else {
+      // Fallback for browsers that don't support Web Share API
+      navigator.clipboard.writeText(window.location.href);
+      toast.success("Listing link copied to clipboard!");
+      console.log("Share feature clicked. Link copied.");
+    }
+  };
+
+
+  if (loading) {
+    return (
+      <main className="flex-1 py-6 md:py-12 bg-white flex justify-center items-center min-h-[60vh]">
+        <p className="text-xl text-gray-600">Loading ad details...</p>
+      </main>
+    );
+  }
+
+  if (error) {
+    return (
+      <main className="flex-1 py-6 md:py-12 bg-white flex justify-center items-center min-h-[60vh]">
+        <p className="text-xl text-red-600">Error: {error}</p>
+        <p className="text-gray-600 mt-2">Please try again later.</p>
+      </main>
+    );
+  }
+
+  if (!listingData) {
+    return (
+      <main className="flex-1 py-6 md:py-12 bg-white flex justify-center items-center min-h-[60vh]">
+        <p className="text-xl text-gray-600">Listing not found.</p>
+      </main>
+    );
+  }
 
   return (
     <main className="flex-1 py-6 md:py-12 bg-white border">
@@ -56,10 +127,10 @@ export default function ListingPage() {
             <div className="flex flex-col gap-2">
               <div className="flex items-center gap-2 flex-wrap">
                 <Badge className="bg-brand-magenta-600 text-black hover:bg-black hover:text-brand-magenta-700 transition-colors border border-transparent hover:border-brand-magenta-600">
-                  {listingData.category}
+                  {listingData.category || 'N/A'}
                 </Badge>
                 <Badge className="bg-brand-magenta-600 text-black hover:bg-black hover:text-brand-magenta-700 transition-colors border border-transparent hover:border-brand-magenta-600">
-                  {listingData.subcategory}
+                  {listingData.subcategory || 'N/A'}
                 </Badge>
                 {listingData.featured && (
                   <Badge className="bg-brand-magenta-600 hover:bg-brand-magenta-600 text-black font-medium">
@@ -70,24 +141,26 @@ export default function ListingPage() {
               <h1 className="text-2xl font-bold md:text-3xl text-gray-800">{listingData.title}</h1>
               <div className="flex items-center gap-2 text-gray-500">
                 <MapPin className="h-4 w-4" />
-                <span>{listingData.location}</span>
+                <span>{listingData.location || 'N/A'}</span>
                 <span className="text-sm">•</span>
                 <Calendar className="h-4 w-4" />
-                <span>Posted {listingData.postedDate}</span>
+                <span>Posted {listingData.postedDate || (listingData.createdAt ? new Date(listingData.createdAt).toLocaleDateString() : 'N/A')}</span>
               </div>
-              <p className="text-2xl font-bold text-brand-magenta-600">{listingData.price}</p>
+              <p className="text-2xl font-bold text-brand-magenta-600">
+                {listingData.price ? `$${listingData.price}` : 'Price not specified'}
+              </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border py-2 px-2">
               <div className="relative aspect-video overflow-hidden rounded-lg">
                 <img
-                  src={listingData.images[0] || "/images/carr.png"}
+                  src={listingData.images?.[0] || "/images/carr.png"}
                   alt={listingData.title}
                   className="object-cover w-full h-full"
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
-                {listingData.images.slice(1, 5).map((image, index) => (
+                {listingData.images?.slice(1, 5).map((image, index) => (
                   <div key={index} className="relative aspect-square overflow-hidden rounded-lg">
                     <img
                       src={image || "/images/carr.png"}
@@ -101,51 +174,52 @@ export default function ListingPage() {
 
             <div className="space-y-4">
               <h2 className="text-xl font-bold text-gray-700">Description</h2>
-              <p className="text-gray-500 leading-relaxed">{listingData.description}</p>
+              <p className="text-gray-500 leading-relaxed">{listingData.description || 'No description provided.'}</p>
             </div>
 
-            <div className="space-y-4">
-              <h2 className="text-xl font-bold text-gray-700">Details</h2>
-              <div className="grid grid-cols-2 gap-4">
-                {listingData.details.map((detail, index) => (
-                  <div key={index} className="flex justify-between">
-                    <span className="font-medium text-gray-600">{detail.label}:</span>
-                    <span className="text-gray-500">{detail.value}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
           </div>
 
           <div className="space-y-6">
-            <Card className="border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+            {/* Seller Contact Card */}
+            <Card className="border-gray-200 shadow-sm hover:shadow-md transition-shadow bg-gray-800 text-gray-200">
               <CardContent className="p-6 space-y-4">
                 <div className="flex items-center gap-4">
                   <div className="rounded-full bg-brand-magenta-100 p-2">
                     <User className="h-6 w-6 text-brand-magenta-600" />
                   </div>
                   <div>
-                    <p className="font-medium text-gray-300">{listingData.seller.name}</p>
-                    <p className="text-sm text-gray-400">Member since {listingData.seller.memberSince}</p>
+                    {/* Accessing user data from listingData.user (assuming backend populates it) */}
+                    <p className="font-medium text-gray-300">{listingData.user?.name || listingData.user?.username || 'Seller Name'}</p>
+                    <p className="text-sm text-gray-400">
+  Member since{' '}
+  {listingData.user?.createdAt
+    ? new Date(listingData.user.createdAt).toLocaleDateString()
+    : 'N/A'}
+</p>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   <div>
                     <p className="text-gray-400">Listings</p>
-                    <p className="font-medium text-gray-200">{listingData.seller.listings}</p>
+                    <p className="font-medium text-gray-200">{listingData.user?.listingsCount || 0}</p>
                   </div>
                   <div>
                     <p className="text-gray-400">Rating</p>
-                    <p className="font-medium text-gray-200">{listingData.seller.rating}/5</p>
+                    <p className="font-medium text-gray-200">{listingData.user?.rating ? `${listingData.user.rating}/5` : 'N/A'}</p>
                   </div>
                 </div>
                 <div className="grid grid-cols-1 gap-2">
-                  <Button className="w-full bg-brand-magenta-600 hover:bg-brand-magenta-600 text-black font-medium">
-                    <Phone className="mr-2 h-4 w-4" /> Show Phone Number
+                  <Button
+                    className="w-full bg-brand-magenta-600 hover:bg-brand-magenta-700 text-black font-medium"
+                    onClick={handleShowPhoneNumber}
+                  >
+                    <Phone className="mr-2 h-4 w-4" />
+                    {showPhoneNumber ? (listingData.user?.contact || 'No Phone') : 'Show Phone Number'}
                   </Button>
                   <Button
                     variant="outline"
                     className="w-full border-gray-300 text-gray-400 hover:bg-gray-700 font-medium"
+                    onClick={handleMessageSeller}
                   >
                     <MessageCircle className="mr-2 h-4 w-4" /> Message Seller
                   </Button>
@@ -153,6 +227,7 @@ export default function ListingPage() {
               </CardContent>
             </Card>
 
+            {/* Listing Actions Card */}
             <Card className="border-gray-200 shadow-sm hover:shadow-md transition-shadow">
               <CardContent className="p-6 space-y-4">
                 <h3 className="font-medium text-gray-400">Listing Actions</h3>
@@ -160,23 +235,26 @@ export default function ListingPage() {
                   <Button
                     variant="outline"
                     className="w-full border-gray-300 text-gray-400 hover:bg-gray-700 font-medium"
+                    onClick={handleSaveListing}
                   >
                     <Heart className="mr-2 h-4 w-4" /> Save
                   </Button>
                   <Button
                     variant="outline"
                     className="w-full border-gray-300 text-gray-400 hover:bg-gray-700 font-medium"
+                    onClick={handleShareListing}
                   >
                     <Share2 className="mr-2 h-4 w-4" /> Share
                   </Button>
                 </div>
                 <div className="text-sm text-gray-300">
-                  <p>Ad ID: {listingData.id}</p>
-                  <p>Views: {listingData.views}</p>
+                  <p>Ad ID: {listingData._id || 'N/A'}</p>
+                  <p>Views: {listingData.views || 0}</p>
                 </div>
               </CardContent>
             </Card>
 
+            {/* Safety Tips Card */}
             <Card className="border-gray-200 shadow-sm hover:shadow-md transition-shadow">
               <CardContent className="p-6">
                 <h3 className="font-medium mb-4 text-gray-400">Safety Tips</h3>
@@ -193,5 +271,5 @@ export default function ListingPage() {
         </div>
       </div>
     </main>
-  )
+  );
 }

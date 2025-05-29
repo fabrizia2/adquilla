@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import { Button } from "../../components/ui/button"
 import { Input } from "../../components/ui/input"
 import { Label } from "../../components/ui/label"
@@ -12,12 +12,45 @@ export default function RegisterPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
+  const [location, setLocation] = useState("")
   const [agreeTerms, setAgreeTerms] = useState(false)
+  const [error, setError] = useState("")
+  const navigate = useNavigate()
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    // Handle registration logic here
-    console.log({ name, email, password, confirmPassword, agreeTerms })
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match")
+      return
+    }
+
+    try {
+      const response = await fetch("https://backend-nhs9.onrender.com/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name,
+          email,
+          password,
+          location,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.message || "Registration failed")
+      }
+
+      console.log("User registered:", data)
+      navigate("/auth/login")
+    } catch (err) {
+      console.error("Registration error:", err)
+      setError(err.message)
+    }
   }
 
   return (
@@ -28,60 +61,34 @@ export default function RegisterPage() {
             <h1 className="text-3xl font-bold">Create an account</h1>
             <p className="text-muted-foreground">Enter your information to create an account</p>
           </div>
+          {error && <p className="text-red-500 text-sm text-center">{error}</p>}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="name">Full Name</Label>
-              <Input id="name" placeholder="John Doe" value={name} onChange={(e) => setName(e.target.value)} required />
+              <Input id="name" value={name} onChange={(e) => setName(e.target.value)} required />
             </div>
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="name@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
+              <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="location">Location</Label>
+              <Input id="location" value={location} onChange={(e) => setLocation(e.target.value)} required />
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
+              <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
             </div>
             <div className="space-y-2">
               <Label htmlFor="confirm-password">Confirm Password</Label>
-              <Input
-                id="confirm-password"
-                type="password"
-                placeholder="••••••••"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-              />
+              <Input id="confirm-password" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
             </div>
             <div className="flex items-center space-x-2">
-              <Checkbox
-                id="terms"
-                checked={agreeTerms}
-                onCheckedChange={(checked) => setAgreeTerms(checked)}
-                required
-              />
+              <Checkbox id="terms" checked={agreeTerms} onCheckedChange={(checked) => setAgreeTerms(checked)} required />
               <Label htmlFor="terms" className="text-sm font-normal">
                 I agree to the{" "}
-                <Link to="/terms" className="text-primary hover:underline">
-                  Terms of Service
-                </Link>{" "}
-                and{" "}
-                <Link to="/privacy" className="text-primary hover:underline">
-                  Privacy Policy
-                </Link>
+                <Link to="/terms" className="text-primary hover:underline">Terms of Service</Link> and{" "}
+                <Link to="/privacy" className="text-primary hover:underline">Privacy Policy</Link>
               </Label>
             </div>
             <Button type="submit" className="w-full">
@@ -91,9 +98,7 @@ export default function RegisterPage() {
           <div className="text-center">
             <p className="text-sm text-muted-foreground">
               Already have an account?{" "}
-              <Link to="/auth/login" className="text-primary hover:underline">
-                Sign in
-              </Link>
+              <Link to="/auth/login" className="text-primary hover:underline">Sign in</Link>
             </p>
           </div>
         </div>

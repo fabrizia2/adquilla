@@ -1,5 +1,6 @@
 "use client"
 
+import React, { useState, useEffect } from 'react'; // Import useState and useEffect
 import { useParams, useNavigate } from "react-router-dom"
 import { Button } from "../../components/ui/button"
 import { Input } from "../../components/ui/input"
@@ -7,190 +8,132 @@ import { Card, CardContent, CardFooter, CardHeader } from "../../components/ui/c
 import { Badge } from "../../components/ui/badge"
 import { ChevronDown, Filter, Search, ShoppingBag } from "../../components/icons"
 
-// Mock data for category listings
-const categoryData = {
-  vehicles: {
-    title: "Vehicles",
-    description: "Browse cars, motorcycles, trucks, and more",
-    count: 1243,
-    listings: [
-      {
-        id: 1,
-        title: "2020 Tesla Model 3 Long Range",
-        price: "$39,999",
-        location: "San Francisco, CA",
-        image: "/images/carr.png",
-        featured: true,
-      },
-      {
-        id: 2,
-        title: "2019 Honda Civic EX - Low Miles",
-        price: "$18,600",
-        location: "Los Angeles, CA",
-        image: "/images/carr.png",
-        featured: false,
-      },
-      {
-        id: 3,
-        title: "2021 Ford F-150 XLT 4x4",
-        price: "$42,999",
-        location: "Dallas, TX",
-        image: "/images/carr.png",
-        featured: false,
-      },
-      {
-        id: 4,
-        title: "2018 Toyota Camry SE",
-        price: "$19,750",
-        location: "Miami, FL",
-        image: "/images/carr.png",
-        featured: true,
-      },
-      {
-        id: 5,
-        title: "2022 Chevrolet Tahoe LT",
-        price: "$54,995",
-        location: "Chicago, IL",
-        image: "/images/carr.png",
-        featured: false,
-      },
-      {
-        id: 6,
-        title: "2017 BMW 5 Series 540i",
-        price: "$29,900",
-        location: "Seattle, WA",
-        image: "/images/carr.png",
-        featured: false,
-      },
-    ],
-  },
-  properties: {
-    title: "Properties",
-    description: "Find apartments, houses, land, and commercial properties",
-    count: 867,
-    listings: [
-      {
-        id: 1,
-        title: "Modern 2-Bedroom Apartment",
-        price: "$2,600/month",
-        location: "New York, NY",
-        image: "/images/carr.png",
-        featured: true,
-      },
-      {
-        id: 2,
-        title: "3-Bedroom Single Family Home",
-        price: "$450,000",
-        location: "Austin, TX",
-        image: "/images/carr.png",
-        featured: false,
-      },
-    ],
-  },
-  electronics: {
-    title: "Electronics",
-    description: "Shop smartphones, TVs, cameras, and other electronics",
-    count: 2156,
-    listings: [
-      {
-        id: 1,
-        title: "iPhone 14 Pro Max - 256GB",
-        price: "$899",
-        location: "Chicago, IL",
-        image: "/images/carr.png",
-        featured: false,
-      },
-      {
-        id: 2,
-        title: 'Samsung 65" QLED 4K Smart TV',
-        price: "$799",
-        location: "Houston, TX",
-        image: "/images/carr.png",
-        featured: true,
-      },
-    ],
-  },
-  furniture: {
-    title: "Furniture",
-    description: "Discover sofas, beds, tables, and more for your home",
-    count: 932,
-    listings: [
-      {
-        id: 1,
-        title: "Leather Sectional Sofa",
-        price: "$1,200",
-        location: "Austin, TX",
-        image: "/images/carr.png",
-        featured: false,
-      },
-      {
-        id: 2,
-        title: "Queen Size Bed Frame with Storage",
-        price: "$499",
-        location: "Portland, OR",
-        image: "/images/carr.png",
-        featured: true,
-      },
-    ],
-  },
-  computers: {
-    title: "Computers",
-    description: "Find laptops, desktops, and computer accessories",
-    count: 754,
-    listings: [
-      {
-        id: 1,
-        title: 'MacBook Pro 16" M2 Max',
-        price: "$2,899",
-        location: "Seattle, WA",
-        image: "/images/carr.png",
-        featured: true,
-      },
-      {
-        id: 2,
-        title: "Custom Gaming PC - RTX 4080, i9",
-        price: "$2,499",
-        location: "Las Vegas, NV",
-        image: "/images/carr.png",
-        featured: false,
-      },
-    ],
-  },
-  other: {
-    title: "Other",
-    description: "Browse miscellaneous items that don't fit other categories",
-    count: 1587,
-    listings: [
-      {
-        id: 1,
-        title: "Mountain Bike - Trek Fuel EX 8",
-        price: "$3,299",
-        location: "Denver, CO",
-        image: "/images/carr.png",
-        featured: false,
-      },
-      {
-        id: 2,
-        title: "Antique Wooden Chest - 19th Century",
-        price: "$750",
-        location: "Boston, MA",
-        image: "/images/carr.png",
-        featured: true,
-      },
-    ],
-  },
-}
-
 export default function CategoryPage() {
-  const navigate = useNavigate()
-  const { slug } = useParams()
-  const category = categoryData[slug] || {
-    title: "Category Not Found",
-    description: "This category does not exist",
+  const navigate = useNavigate();
+  const { slug } = useParams(); // This will be the category slug (e.g., 'vehicles', 'properties')
+
+  const [categoryData, setCategoryData] = useState({
+    title: "",
+    description: "",
     count: 0,
     listings: [],
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchCategoryListings = async () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        // Construct the API URL to fetch listings by category
+        // Assuming your backend supports filtering by a 'category' query parameter
+        const response = await fetch(`https://backend-nhs9.onrender.com/api/listings?category=${slug}`);
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to fetch category listings');
+        }
+
+        const data = await response.json(); // Assuming backend returns an array of listings
+
+        // You'll need to transform the backend data to fit your frontend's expected structure
+        // The backend likely returns an array of listings directly.
+        // We'll simulate the category title and description based on the slug.
+        // In a more complex app, you might have a separate /api/categories/:slug endpoint
+        // that provides title, description, and count.
+
+        const fetchedListings = data.map(listing => ({
+          id: listing._id, // Use MongoDB _id for unique key
+          title: listing.title,
+          price: listing.price ? `$${listing.price}` : 'Price not specified', // Format price
+          location: listing.location || 'N/A',
+          image: listing.images?.[0] || "/images/carr.png", // Use first image or default
+          featured: listing.featured || false, // Default to false if not provided
+          // Add any other fields you need
+        }));
+
+        setCategoryData({
+          title: slug.charAt(0).toUpperCase() + slug.slice(1).replace(/-/g, ' '), // Basic title from slug
+          description: `Browse ${slug.replace(/-/g, ' ').toLowerCase()} listings.`, // Basic description
+          count: fetchedListings.length, // Count based on fetched listings
+          listings: fetchedListings,
+        });
+
+      } catch (err) {
+        console.error("Error fetching category listings:", err);
+        setError(`Failed to load listings for ${slug}: ${err.message}`);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (slug) {
+      fetchCategoryListings();
+    }
+  }, [slug]); // Re-run effect whenever the 'slug' param changes
+
+  // --- Conditional Rendering based on Loading/Error states ---
+  if (loading) {
+    return (
+      <main className="flex-1 py-6 md:py-12 bg-white flex justify-center items-center min-h-[60vh]">
+        <p className="text-xl text-gray-600">Loading listings for {slug}...</p>
+      </main>
+    );
   }
 
+  if (error) {
+    return (
+      <main className="flex-1 py-6 md:py-12 bg-white flex justify-center items-center min-h-[60vh]">
+        <p className="text-xl text-red-600">Error: {error}</p>
+        <p className="text-gray-600 mt-2">Please try again later.</p>
+      </main>
+    );
+  }
+
+  // Fallback for category not found after attempting to fetch
+  if (!categoryData.title && !loading && !error) {
+    return (
+        <main className="flex-1">
+            <section className="w-full py-6 md:py-12 bg-white border border-gray-300 shadow-inner">
+                <div className="container px-4 md:px-6">
+                    <div className="flex flex-col items-start space-y-4">
+                        <div className="space-y-2">
+                            <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl text-gray-900">
+                                <span className="bg-red-600 text-white px-4 py-2 rounded-md inline-block">
+                                    Category Not Found
+                                </span>
+                            </h1>
+                            <p className="text-gray-700 mt-2">
+                                The category "{slug}" does not exist or has no listings.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <section className="w-full py-12 bg-white">
+                <div className="container px-4 md:px-6">
+                    <div className="flex flex-col items-center justify-center py-12 text-center">
+                        <div className="rounded-full bg-brand-magenta-100 p-6 mb-4">
+                            <ShoppingBag className="h-10 w-10 text-brand-magenta-600" />
+                        </div>
+                        <h3 className="text-xl font-medium text-gray-900">No listings found</h3>
+                        <p className="text-gray-700 mt-2 mb-6">There are currently no listings in this category.</p>
+                        <Button
+                            onClick={() => navigate("/create-listing")}
+                            className="bg-brand-magenta-600 hover:bg-brand-magenta-600 text-white font-medium"
+                        >
+                            Create a Listing
+                        </Button>
+                    </div>
+                </div>
+            </section>
+        </main>
+    );
+  }
+
+  // --- Actual Category Display (when data is available) ---
   return (
     <main className="flex-1">
       <section className="w-full py-6 md:py-12 bg-white border border-gray-300 shadow-inner">
@@ -199,11 +142,11 @@ export default function CategoryPage() {
             <div className="space-y-2">
               <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl text-gray-900">
                 <span className="bg-brand-magenta-600 text-white px-4 py-2 rounded-md inline-block">
-                  {category.title}
+                  {categoryData.title}
                 </span>
               </h1>
               <p className="text-gray-700 mt-2">
-                {category.description} • {category.count} listings
+                {categoryData.description} • {categoryData.count} listings
               </p>
             </div>
             <div className="w-full flex flex-col sm:flex-row gap-4">
@@ -211,7 +154,7 @@ export default function CategoryPage() {
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-600" />
                 <Input
                   type="search"
-                  placeholder={`Search in ${category.title.toLowerCase()}...`}
+                  placeholder={`Search in ${categoryData.title.toLowerCase()}...`}
                   className="pl-8 w-full border-gray-300 focus:border-brand-magenta-600 focus:ring-brand-magenta-600"
                 />
               </div>
@@ -232,9 +175,9 @@ export default function CategoryPage() {
       <section className="w-full py-12 bg-white">
         <div className="container px-4 md:px-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {category.listings.map((listing) => (
+            {categoryData.listings.map((listing) => (
               <Card
-                key={listing.id}
+                key={listing.id} // Use the transformed 'id' (which is MongoDB _id)
                 className="overflow-hidden h-full transition-all hover:shadow-lg cursor-pointer border-gray-200 hover:border-brand-magenta-300 bg-white"
                 onClick={() => navigate(`/listing/${listing.id}`)}
               >
@@ -259,14 +202,14 @@ export default function CategoryPage() {
                 </CardContent>
                 <CardFooter className="p-4 pt-0 border-t border-gray-200">
                   <Badge className="bg-brand-magenta-600 text-white hover:bg-white hover:text-brand-magenta-700 transition-colors border border-transparent hover:border-brand-magenta-600 mt-3">
-                    {category.title}
+                    {categoryData.title} {/* Use the dynamically set category title */}
                   </Badge>
                 </CardFooter>
               </Card>
             ))}
           </div>
 
-          {category.listings.length > 0 && (
+          {categoryData.listings.length > 0 && (
             <div className="flex justify-center mt-12">
               <Button
                 variant="outline"
@@ -278,7 +221,7 @@ export default function CategoryPage() {
             </div>
           )}
 
-          {category.listings.length === 0 && (
+          {categoryData.listings.length === 0 && ( // This condition is now also true if API returns empty array
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <div className="rounded-full bg-brand-magenta-100 p-6 mb-4">
                 <ShoppingBag className="h-10 w-10 text-brand-magenta-600" />
