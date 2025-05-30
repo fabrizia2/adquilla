@@ -58,34 +58,34 @@ export default function RegisterPage() {
       <div className="w-full max-w-md px-4">
         <div className="space-y-6">
           <div className="space-y-2 text-center">
-            <h1 className="text-3xl font-bold">Create an account</h1>
-            <p className="text-muted-foreground">Enter your information to create an account</p>
+            <h1 className="text-3xl font-bold text-black">Create an account</h1>
+            <p className="text-gray-700">Enter your information to create an account</p>
           </div>
           {error && <p className="text-red-500 text-sm text-center">{error}</p>}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Full Name</Label>
+              <Label htmlFor="name" className="text-gray-800">Full Name</Label>
               <Input id="name" value={name} onChange={(e) => setName(e.target.value)} required />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email" className="text-gray-800">Email</Label>
               <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="location">Location</Label>
+              <Label htmlFor="location" className="text-gray-800">Location</Label>
               <Input id="location" value={location} onChange={(e) => setLocation(e.target.value)} required />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password" className="text-gray-800">Password</Label>
               <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="confirm-password">Confirm Password</Label>
+              <Label htmlFor="confirm-password" className="text-gray-800">Confirm Password</Label>
               <Input id="confirm-password" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
             </div>
             <div className="flex items-center space-x-2">
               <Checkbox id="terms" checked={agreeTerms} onCheckedChange={(checked) => setAgreeTerms(checked)} required />
-              <Label htmlFor="terms" className="text-sm font-normal">
+              <Label htmlFor="terms" className="text-sm font-normal text-black">
                 I agree to the{" "}
                 <Link to="/terms" className="text-primary hover:underline">Terms of Service</Link> and{" "}
                 <Link to="/privacy" className="text-primary hover:underline">Privacy Policy</Link>
@@ -96,7 +96,7 @@ export default function RegisterPage() {
             </Button>
           </form>
           <div className="text-center">
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-black">
               Already have an account?{" "}
               <Link to="/auth/login" className="text-primary hover:underline">Sign in</Link>
             </p>
