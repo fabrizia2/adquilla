@@ -179,7 +179,7 @@ export default function ManageAdsPage() {
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Your Ads ({userAds.length})</h1>
           <Button
-            onClick={() => navigate("/create-listing")}
+            onClick={() => navigate("/post-ad")}
             className="bg-brand-magenta-600 hover:bg-brand-magenta-700 text-white font-medium"
           >
             <Plus className="mr-2 h-4 w-4" /> Create New Ad

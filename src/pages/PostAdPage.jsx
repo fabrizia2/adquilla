@@ -16,6 +16,20 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../co
 // Custom icons - Make sure ImagePlus and XCircle are exported from here
 import { ImagePlus, XCircle } from "../components/icons";
 
+// --- Define your specific categories here (or import from a central file) ---
+const fixedCategories = [
+  "Cars & Vehicles",
+  "For Sale",
+  "Services",
+  "Property",
+  "Pets",
+  "Jobs",
+  "Community",
+  "Electronics", // Added based on your request
+  "Others",     // Added based on your request
+];
+// -------------------------------------------------------------------------
+
 export default function CreateListingPage() {
   const { id } = useParams(); // Get the ID from the URL (will be undefined for new listings)
   const { user, isAuthenticated, loadingAuth } = useContext(AuthContext); // Get isAuthenticated and loadingAuth
@@ -48,7 +62,7 @@ export default function CreateListingPage() {
       setStatusMessage("You must be logged in to create or edit ads.");
       setLoadingInitialData(false);
       // Optional: Redirect to login or home if not authenticated
-      navigate('/login');
+      navigate('/auth/login', { state: { from: window.location.pathname } }); // Corrected path and added state
       return;
     }
 
@@ -130,40 +144,50 @@ export default function CreateListingPage() {
   // Handles multiple file input change
   const handleFileChange = (e) => {
     const selectedFiles = Array.from(e.target.files);
-    const currentImagesCount = formData.images.filter(img => typeof img === 'object').length + imagePreviews.length; // Count existing file objects and already loaded image URLs
+    // Count existing image URLs (strings) and new File objects that are currently in formData.images
+    const currentImagesCount = formData.images.filter(img => typeof img === 'string' || typeof img === 'object').length;
     const filesToTake = Math.min(selectedFiles.length, MAX_IMAGES - currentImagesCount);
 
     if (filesToTake === 0 && currentImagesCount === MAX_IMAGES) {
       setStatusMessage(`Error: You can upload a maximum of ${MAX_IMAGES} images.`);
       setTimeout(() => setStatusMessage(""), 3000);
-      e.target.value = '';
+      e.target.value = ''; // Clear the file input
       return;
     }
 
     const newFiles = selectedFiles.slice(0, filesToTake);
 
-    setFormData((prev) => ({ ...prev, images: [...prev.images, ...newFiles] }));
+    setFormData((prev) => ({
+      ...prev,
+      images: [...prev.images, ...newFiles], // Add new File objects
+    }));
 
+    // Generate URLs for new files for preview
     const newPreviews = newFiles.map(file => URL.createObjectURL(file));
     setImagePreviews((prev) => [...prev, ...newPreviews]);
 
-    e.target.value = '';
+    e.target.value = ''; // Clear the file input after selection
   };
+
 
   // Handles removing an individual image preview
   const handleRemoveImage = (indexToRemove) => {
-    // If the image is a new File object (from current session), revoke its URL
-    if (typeof formData.images[indexToRemove] === 'object') {
-      URL.revokeObjectURL(imagePreviews[indexToRemove]);
+    const updatedImages = formData.images.filter((_, index) => index !== indexToRemove);
+    const updatedImagePreviews = imagePreviews.filter((_, index) => index !== indexToRemove);
+
+    // Revoke URL only if it was a dynamically created URL (from a File object)
+    // Existing image URLs from the backend don't need to be revoked.
+    if (typeof formData.images[indexToRemove] === 'object' && imagePreviews[indexToRemove].startsWith('blob:')) {
+        URL.revokeObjectURL(imagePreviews[indexToRemove]);
     }
-    // Filter out the image from formData.images (handles both files and URLs)
+
     setFormData((prev) => ({
       ...prev,
-      images: prev.images.filter((_, index) => index !== indexToRemove),
+      images: updatedImages,
     }));
-    // Filter out the preview URL
-    setImagePreviews((prev) => prev.filter((_, index) => index !== indexToRemove));
+    setImagePreviews(updatedImagePreviews);
   };
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -181,7 +205,7 @@ export default function CreateListingPage() {
     if (!token) {
       setStatusMessage("Error: Not authenticated. Please log in.");
       setIsSubmitting(false);
-      navigate('/login'); // Redirect to login if token is missing
+      navigate('/auth/login', { state: { from: window.location.pathname } }); // Redirect to login if token is missing
       return;
     }
 
@@ -194,9 +218,9 @@ export default function CreateListingPage() {
 
     // Append images: new File objects will be sent, existing URLs will be sent as strings
     formData.images.forEach((item) => {
-      if (typeof item === 'object') { // It's a new file
+      if (typeof item === 'object') { // It's a new file (File object)
         form.append("images", item);
-      } else { // It's an existing image URL (string)
+      } else { // It's an existing image URL (string) from the backend
         form.append("existingImages", item); // Your backend needs to handle this distinction
       }
     });
@@ -250,8 +274,8 @@ export default function CreateListingPage() {
       console.log(`Ad ${isEditMode ? 'updated' : 'posted'} successfully. Response:`, responseData);
       setStatusMessage(`Ad ${isEditMode ? 'updated' : 'posted'} successfully!`);
 
-      // Revoke all object URLs to free up memory
-      imagePreviews.forEach(url => URL.revokeObjectURL(url));
+      // Revoke all object URLs for new files to free up memory
+      imagePreviews.filter(url => url.startsWith('blob:')).forEach(url => URL.revokeObjectURL(url));
 
       // Reset form (only if creating, for editing we might want to stay on page or navigate)
       if (!isEditMode) {
@@ -340,13 +364,13 @@ export default function CreateListingPage() {
                     <SelectTrigger id="category">
                       <SelectValue placeholder="Select a category" />
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="vehicles">Vehicles</SelectItem>
-                      <SelectItem value="properties">Properties</SelectItem>
-                      <SelectItem value="electronics">Electronics</SelectItem>
-                      <SelectItem value="furniture">Furniture</SelectItem>
-                      <SelectItem value="computers">Computers</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
+                    <SelectContent className="relative overflow-visible">
+                      {/* Dynamically render SelectItem components using fixedCategories */}
+                      {fixedCategories.map((category) => (
+                        <SelectItem key={category} value={category} className="relative overflow-visible">
+                          {category}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -404,7 +428,7 @@ export default function CreateListingPage() {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
-                  {/* Display existing image previews */}
+                  {/* Display image previews */}
                   {imagePreviews.map((src, index) => (
                     <div key={index} className="relative aspect-square rounded-lg overflow-hidden border">
                       <img
@@ -426,7 +450,7 @@ export default function CreateListingPage() {
                   ))}
 
                   {/* Upload area - visible only if max images not reached */}
-                  {formData.images.length < MAX_IMAGES && (
+                  {imagePreviews.length < MAX_IMAGES && ( // Use imagePreviews.length for total count
                     <div className="relative aspect-square flex flex-col items-center justify-center rounded-lg border border-dashed p-4 text-center cursor-pointer hover:bg-gray-50 transition-colors">
                       <input
                         id="file-upload"
@@ -449,7 +473,7 @@ export default function CreateListingPage() {
                     </div>
                   )}
                 </div>
-                {formData.images.length === 0 && (
+                {formData.images.length === 0 && ( // Still check formData.images for requirement
                    <p className="text-sm text-red-500 mt-2">At least one image is required.</p>
                 )}
               </CardContent>

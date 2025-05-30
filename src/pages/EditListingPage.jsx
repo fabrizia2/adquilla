@@ -1,7 +1,9 @@
 // src/pages/EditListingPage.jsx
-import React, { useState, useEffect, useContext } from 'react';
+"use client";
+
+import React, { useState, useEffect, useContext, useRef } from 'react'; // Import useRef
 import { useParams, useNavigate } from 'react-router-dom';
-import { AuthContext } from '../layouts/AuthProvider'; // Adjust path if necessary
+import { AuthContext } from '../layouts/AuthProvider';
 
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
@@ -15,57 +17,55 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../components/ui/select";
-// Assuming you have react-hot-toast for notifications
 import { toast } from "react-hot-toast";
 
+const fixedCategories = [
+  "Cars & Vehicles",
+  "For Sale",
+  "Services",
+  "Property",
+  "Pets",
+  "Jobs",
+  "Community",
+  "Electronics",
+  "Others",
+];
 
 export default function EditListingPage() {
-  const { id } = useParams(); // Get listing ID from URL
+  const { id } = useParams();
   const navigate = useNavigate();
   const { user, isAuthenticated, loadingAuth } = useContext(AuthContext);
 
-  const [listingData, setListingData] = useState(null); // Original fetched data
-  const [formData, setFormData] = useState({ // Form data for editing
+  const [listingData, setListingData] = useState(null);
+  const [formData, setFormData] = useState({
     title: '',
     description: '',
     price: '',
     category: '',
-    subcategory: '', // Optional
+    subcategory: '',
     location: '',
-    // images: [], // Image handling is more complex, will simplify for now
   });
 
-  const [loading, setLoading] = useState(true); // For initial fetch
-  const [submitting, setSubmitting] = useState(false); // For form submission
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
-  const [isOwner, setIsOwner] = useState(false); // To check if current user owns the ad
+  const [isOwner, setIsOwner] = useState(false);
 
+  // Use a ref to track if the explicit submit button was clicked
+  const submitButtonClickedRef = useRef(false); // NEW: Ref to track button click
 
-  // Example Categories (replace with your actual categories from backend or a config)
-  // IMPORTANT: Ensure these keys match the category strings that come from your backend
-  const categories = {
-    'Vehicles': ['Cars', 'Motorcycles', 'Bicycles', 'Trucks'],
-    'Electronics': ['Phones', 'Laptops', 'Cameras', 'Tablets'],
-    'Real Estate': ['Houses', 'Apartments', 'Land', 'Commercial'],
-    'Home & Garden': ['Furniture', 'Appliances', 'Decor', 'Tools'],
-    'Fashion': ['Clothing', 'Shoes', 'Accessories'],
-    'Services': ['Cleaning', 'Tutoring', 'Repair'],
-    'Other': [],
-  };
-
-  // --- Fetch Listing Data ---
   useEffect(() => {
     const fetchListing = async () => {
-      // Wait for AuthProvider to finish loading authentication status
       if (loadingAuth) {
+        console.log("Auth is still loading in useEffect...");
         return;
       }
 
-      // Redirect if not authenticated or user data is missing
       if (!isAuthenticated || !user?._id) {
+        console.log("Not authenticated or user ID missing. Redirecting.");
         toast.error("Please log in to edit ads.");
-        navigate('/login'); // Redirect to login page
-        setLoading(false); // Stop loading state
+        setLoading(false);
+        navigate('/auth/login', { state: { from: window.location.pathname } });
         return;
       }
 
@@ -74,9 +74,11 @@ export default function EditListingPage() {
 
       const token = localStorage.getItem('token');
       if (!token) {
+        console.log("Authentication token missing. Redirecting to login.");
         setError("Authentication token missing. Please log in again.");
         toast.error("Authentication token missing.");
         setLoading(false);
+        navigate('/auth/login', { state: { from: window.location.pathname } });
         return;
       }
 
@@ -95,29 +97,31 @@ export default function EditListingPage() {
 
         const data = await response.json();
 
-        // Check if the authenticated user is the owner of the listing
-        // Assumes `data.user` holds the ID of the listing owner
-        if (data.user._id !== user._id) {
+        console.log("Fetched listing data:", data);
+        console.log("Logged-in user from AuthContext:", user);
+        const listingOwnerId = data.user?._id || data.owner;
+        console.log("Listing owner ID determined:", listingOwnerId);
+        console.log("Current user ID from AuthContext (user._id):", user._id);
+
+        if (!listingOwnerId || listingOwnerId !== user._id) {
+          console.log("Authorization failed: Mismatch or missing owner ID. Setting isOwner to false.");
           setIsOwner(false);
           setError("You are not authorized to edit this ad.");
           toast.error("You are not authorized to edit this ad.");
-          setLoading(false); // Stop loading state
+          setLoading(false);
           return;
         }
-        setIsOwner(true); // Set owner status to true if authorized
+        console.log("Authorization successful! Setting isOwner to true.");
+        setIsOwner(true);
 
         setListingData(data);
-        // Initialize form data with fetched data
         setFormData({
           title: data.title || '',
           description: data.description || '',
-          price: data.price ? String(data.price) : '', // Ensure price is string for input
+          price: data.price ? String(data.price) : '',
           category: data.category || '',
           subcategory: data.subcategory || '',
           location: data.location || '',
-          // Images handling: For initial version, we only display existing,
-          // not allow upload/delete via this form yet.
-          // You'll need separate logic for image uploads/removals if required.
         });
       } catch (err) {
         console.error("Error fetching listing:", err);
@@ -128,28 +132,50 @@ export default function EditListingPage() {
       }
     };
 
-    fetchListing();
-  }, [id, user, isAuthenticated, loadingAuth, navigate]); // Depend on relevant state
+    if (id) {
+      if (!loadingAuth) {
+        fetchListing();
+      }
+    } else {
+      setLoading(false);
+      setError("No listing ID provided for editing.");
+      toast.error("Invalid access. No listing ID.");
+      navigate('/manage-ads');
+    }
+  }, [id, user, isAuthenticated, loadingAuth, navigate]);
 
-  // --- Form Handlers ---
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleSelectChange = (name, value) => {
+    console.log(`Select change: ${name} to ${value}`);
     setFormData(prev => ({ ...prev, [name]: value }));
-    // If category changes, reset subcategory
     if (name === 'category') {
       setFormData(prev => ({ ...prev, subcategory: '' }));
     }
   };
 
   const handleSubmit = async (e) => {
+    // ALWAYS prevent default to stop page refresh
     e.preventDefault();
+    console.log("handleSubmit triggered!");
+    console.log("Event type that triggered handleSubmit:", e.type);
 
+    // CRITICAL: Only proceed with API call if the explicit submit button was clicked
+    if (!submitButtonClickedRef.current) {
+        console.log("handleSubmit triggered, but not by explicit button click. Preventing API call.");
+        return; // Exit if not explicitly submitted
+    }
+
+    // Reset the ref immediately
+    submitButtonClickedRef.current = false;
+
+    // --- Rest of your submission logic ---
     if (!isAuthenticated || !user?._id || !isOwner) {
       toast.error("You must be logged in and the ad owner to update.");
+      console.warn("Attempted submission without auth/ownership.");
       return;
     }
 
@@ -161,6 +187,7 @@ export default function EditListingPage() {
       setError("Authentication token missing. Please log in again.");
       toast.error("Authentication token missing.");
       setSubmitting(false);
+      navigate('/auth/login', { state: { from: window.location.pathname } });
       return;
     }
 
@@ -169,9 +196,9 @@ export default function EditListingPage() {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json', // Assuming only text data is sent here, no file upload
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData), // Send formData as JSON
+        body: JSON.stringify(formData),
       });
 
       if (!response.ok) {
@@ -179,12 +206,11 @@ export default function EditListingPage() {
         throw new Error(errorData.message || 'Failed to update listing');
       }
 
-      // const result = await response.json(); // You might want to process the response
       toast.success("Ad updated successfully!");
-      // Optionally, navigate back to manage ads or view the updated ad after a delay
+      console.log("Ad updated successfully, navigating...");
       setTimeout(() => {
         navigate('/manage-ads');
-      }, 1500); // Redirect after 1.5 seconds
+      }, 1500);
 
     } catch (err) {
       console.error("Error updating listing:", err);
@@ -195,20 +221,18 @@ export default function EditListingPage() {
     }
   };
 
-  // --- Conditional Rendering ---
   if (loading) {
     return (
       <main className="flex-1 flex flex-col items-center justify-center py-12 px-4 bg-gray-100 min-h-[60vh]">
         <p className="text-xl text-gray-700">Loading ad details...</p>
-        {/* You can add a Spinner component here if you have one */}
       </main>
     );
   }
 
-  if (error) {
+  if (error || !listingData || !isOwner) {
     return (
       <main className="flex-1 flex flex-col items-center justify-center py-12 px-4 bg-gray-100 min-h-[60vh]">
-        <p className="text-xl text-red-600 mb-4">Error: {error}</p>
+        <p className="text-xl text-red-600 mb-4">Error: {error || "Access Denied or Ad Not Found."}</p>
         <Button onClick={() => navigate('/manage-ads')} className="bg-brand-magenta-600 hover:bg-brand-magenta-700 text-white font-medium">
           Back to Your Ads
         </Button>
@@ -216,19 +240,6 @@ export default function EditListingPage() {
     );
   }
 
-  // If listingData is null after loading and no error, or user is not owner
-  if (!listingData || !isOwner) {
-    return (
-      <main className="flex-1 flex flex-col items-center justify-center py-12 px-4 bg-gray-100 min-h-[60vh]">
-        <p className="text-xl text-gray-700">Access Denied or Ad Not Found.</p>
-        <Button onClick={() => navigate('/manage-ads')} className="bg-brand-magenta-600 hover:bg-brand-magenta-700 text-white font-medium mt-4">
-          Back to Your Ads
-        </Button>
-      </main>
-    );
-  }
-
-  // Render the form
   return (
     <main className="flex-1 py-12 px-4 md:px-6 bg-gray-100 min-h-screen">
       <div className="container mx-auto max-w-2xl">
@@ -238,8 +249,8 @@ export default function EditListingPage() {
             <CardDescription className="text-gray-600">Update the details of your listing.</CardDescription>
           </CardHeader>
           <CardContent>
+            {/* IMPORTANT: Keep onSubmit={handleSubmit} on the form */}
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Title */}
               <div className="space-y-2">
                 <Label htmlFor="title">Ad Title</Label>
                 <Input
@@ -253,7 +264,6 @@ export default function EditListingPage() {
                 />
               </div>
 
-              {/* Description */}
               <div className="space-y-2">
                 <Label htmlFor="description">Description</Label>
                 <Textarea
@@ -267,23 +277,21 @@ export default function EditListingPage() {
                 />
               </div>
 
-              {/* Price */}
               <div className="space-y-2">
-                <Label htmlFor="price">Price ($)</Label>
+                <Label htmlFor="price">Price (Ksh)</Label>
                 <Input
                   id="price"
                   name="price"
                   type="number"
-                  placeholder="e.g., 500"
+                  placeholder="e.g., 50000"
                   value={formData.price}
                   onChange={handleChange}
                   min="0"
-                  step="0.01"
+                  step="any"
                   required
                 />
               </div>
 
-              {/* Category & Subcategory */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="category">Category</Label>
@@ -296,7 +304,7 @@ export default function EditListingPage() {
                       <SelectValue placeholder="Select a category" />
                     </SelectTrigger>
                     <SelectContent>
-                      {Object.keys(categories).map(cat => (
+                      {fixedCategories.map(cat => (
                         <SelectItem key={cat} value={cat}>
                           {cat}
                         </SelectItem>
@@ -309,40 +317,32 @@ export default function EditListingPage() {
                   <Select
                     value={formData.subcategory}
                     onValueChange={(value) => handleSelectChange('subcategory', value)}
-                    // Use optional chaining here to safely check length
-                    disabled={!formData.category || categories[formData.category]?.length === 0}
+                    disabled={!formData.category}
                   >
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Select a subcategory" />
                     </SelectTrigger>
                     <SelectContent>
-                      {/* Also use optional chaining here for safer mapping */}
-                      {categories[formData.category]?.map(sub => (
-                        <SelectItem key={sub} value={sub}>
-                          {sub}
-                        </SelectItem>
-                      ))}
+                       <SelectItem value="none">N/A (No Subcategory)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
 
-              {/* Location */}
               <div className="space-y-2">
                 <Label htmlFor="location">Location</Label>
                 <Input
                   id="location"
                   name="location"
                   type="text"
-                  placeholder="e.g., New York, NY"
+                  placeholder="e.g., Nairobi, Kenya"
                   value={formData.location}
                   onChange={handleChange}
                   required
                 />
               </div>
 
-              {/* Existing Images Display */}
-              {listingData.images && listingData.images.length > 0 && (
+              {listingData?.images && listingData.images.length > 0 && (
                 <div className="space-y-2">
                   <Label>Current Images</Label>
                   <div className="grid grid-cols-3 gap-2">
@@ -357,19 +357,29 @@ export default function EditListingPage() {
                     ))}
                   </div>
                   <p className="text-sm text-gray-500 mt-2">
-                    (This form currently updates text fields only. Image upload/removal needs separate backend logic.)
+                    (This form currently updates text fields only. Image upload/removal is handled separately if needed for edit. If you need to manage images, please use the other form on the "Post Ad" page which has image handling.)
                   </p>
                 </div>
               )}
 
-              {/* Submit Button */}
-              <Button
-                type="submit"
-                className="w-full bg-brand-magenta-600 hover:bg-brand-magenta-700 text-white font-medium py-2"
-                disabled={submitting}
-              >
-                {submitting ? 'Updating Ad...' : 'Update Ad'}
-              </Button>
+              <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => navigate('/manage-ads')}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit" // IMPORTANT: Changed back to type="submit"
+                  // NEW: Add onClick to set the ref true just before submission
+                  onClick={() => { submitButtonClickedRef.current = true; }}
+                  className="w-full sm:w-auto bg-brand-magenta-600 hover:bg-brand-magenta-700 text-white font-medium py-2"
+                  disabled={submitting}
+                >
+                  {submitting ? 'Updating Ad...' : 'Update Ad'}
+                </Button>
+              </div>
             </form>
           </CardContent>
         </Card>
