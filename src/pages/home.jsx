@@ -124,7 +124,7 @@ export default function Home() {
           */}
           <iframe
             className="w-full h-full object-cover bg-white"
-            src="about:blank" // Placeholder for now, replace with actual YouTube embed URL
+            src="https://www.youtube.com/embed/O9vO_CVNXlg?autoplay=1&mute=1&controls=0&loop=1&playlist=O9vO_CVNXlg&modestbranding=1&showinfo=0"
             title="AdShare Background Video"
             allow="autoplay; fullscreen"
             allowFullScreen
