@@ -1,32 +1,112 @@
+// src/pages/Home.jsx
 "use client"
 
+import React, { useState, useEffect } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { Button } from "../components/ui/button"
 import { Input } from "../components/ui/input"
 import {
-  Car,
-  HomeIcon,
-  Laptop,
+  Car,        // For Cars & Vehicles
+  HomeIcon,   // For Property
+  Laptop,     // For Electronics (can be used for Computers too)
   Search,
-  ShoppingBag,
-  Smartphone,
-  Sofa,
+  ShoppingBag, // General items, or 'For Sale', 'Others'
+  Smartphone, // For Electronics
+  Sofa,       // For Furniture (if you add it back)
+  // You might need to import more specific icons if available in your components/icons.jsx
+  // e.g., FaDog for Pets, FaBriefcase for Jobs, FaUsers for Community, FaBoxOpen for For Sale, FaHandsHelping for Services
 } from "../components/icons"
-import FeaturedListings from "../components/featured-listings"
+import FeaturedListings from "../components/featured-listings" // This component will fetch its own data
 import { Card, CardContent } from "../components/ui/card"
 import { motion } from "framer-motion"
+import { toast } from "react-hot-toast" // For toast notifications
 
 export default function Home() {
   const navigate = useNavigate()
 
-  const categories = [
-    { icon: <Car className="h-8 w-8" />, title: "Vehicles", count: 1243, href: "/category/vehicles" },
-    { icon: <HomeIcon className="h-8 w-8" />, title: "Properties", count: 867, href: "/category/properties" },
-    { icon: <Smartphone className="h-8 w-8" />, title: "Electronics", count: 2156, href: "/category/electronics" },
-    { icon: <Sofa className="h-8 w-8" />, title: "Furniture", count: 932, href: "/category/furniture" },
-    { icon: <Laptop className="h-8 w-8" />, title: "Computers", count: 754, href: "/category/computers" },
-    { icon: <ShoppingBag className="h-8 w-8" />, title: "Other", count: 1587, href: "/category/other" },
-  ]
+  // State for Categories with counts
+  const [categoriesData, setCategoriesData] = useState([])
+  const [loadingCategories, setLoadingCategories] = useState(true)
+  const [errorCategories, setErrorCategories] = useState(null)
+
+
+  // Helper function to get icons based on category name
+  // IMPORTANT: Ensure these icons (Car, HomeIcon, Smartphone, ShoppingBag)
+  // are correctly exported from your `../components/icons.jsx` file.
+  // If you want more specific icons for 'Pets', 'Jobs', 'Community', 'Services', 'For Sale',
+  // you'll need to add them to your `icons.jsx` and import them here.
+  const getCategoryIcon = (categoryName) => {
+    switch (categoryName.toLowerCase()) {
+      case 'cars & vehicles': return <Car className="h-8 w-8" />;
+      case 'property': return <HomeIcon className="h-8 w-8" />;
+      case 'electronics': return <Smartphone className="h-8 w-8" />;
+      // Using ShoppingBag as a general icon for categories without specific icons
+      case 'for sale': return <ShoppingBag className="h-8 w-8" />;
+      case 'services': return <ShoppingBag className="h-8 w-8" />;
+      case 'pets': return <ShoppingBag className="h-8 w-8" />;
+      case 'jobs': return <ShoppingBag className="h-8 w-8" />;
+      case 'community': return <ShoppingBag className="h-8 w-8" />;
+      case 'others': return <ShoppingBag className="h-8 w-8" />;
+      default: return <ShoppingBag className="h-8 w-8" />; // Fallback icon
+    }
+  };
+
+  // Static categories with your specified names and their initial icon/href
+  // The 'count' will be updated dynamically if the API call is successful.
+  const staticCategories = [
+    { icon: getCategoryIcon("Cars & Vehicles"), title: "Cars & Vehicles", count: "N/A", href: "/category/cars-vehicles" },
+    { icon: getCategoryIcon("For Sale"), title: "For Sale", count: "N/A", href: "/category/for-sale" },
+    { icon: getCategoryIcon("Services"), title: "Services", count: "N/A", href: "/category/services" },
+    { icon: getCategoryIcon("Property"), title: "Property", count: "N/A", href: "/category/property" },
+    { icon: getCategoryIcon("Pets"), title: "Pets", count: "N/A", href: "/category/pets" },
+    { icon: getCategoryIcon("Jobs"), title: "Jobs", count: "N/A", href: "/category/jobs" },
+    { icon: getCategoryIcon("Community"), title: "Community", count: "N/A", href: "/category/community" },
+    { icon: getCategoryIcon("Electronics"), title: "Electronics", count: "N/A", href: "/category/electronics" },
+    { icon: getCategoryIcon("Others"), title: "Others", count: "N/A", href: "/category/others" },
+  ];
+
+
+  // Fetch Categories with Counts
+  useEffect(() => {
+    const fetchCategories = async () => {
+      setLoadingCategories(true);
+      setErrorCategories(null);
+      try {
+        // IMPORTANT: This API endpoint (`/api/categories/counts`) must exist on your backend.
+        // It should return an array of objects like:
+        // [{ name: "Cars & Vehicles", count: 123 }, { name: "Electronics", count: 456 }, ...]
+        const response = await fetch("https://backend-nhs9.onrender.com/api/categories/counts");
+        if (!response.ok) {
+          console.warn("Could not fetch dynamic category counts. Using static data.");
+          setCategoriesData(staticCategories); // Fallback to static data on API error/non-existence
+        } else {
+          const data = await response.json();
+          // Map backend response to your desired format
+          const mappedCategories = staticCategories.map(staticCat => {
+            const dynamicCat = data.find(d => d.name.toLowerCase() === staticCat.title.toLowerCase());
+            return {
+              ...staticCat,
+              count: dynamicCat ? dynamicCat.count : 'N/A' // Use dynamic count if found, else N/A
+            };
+          });
+          setCategoriesData(mappedCategories);
+        }
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+        setErrorCategories("Failed to load categories.");
+        setCategoriesData(staticCategories); // Fallback to static data on network error
+      } finally {
+        setLoadingCategories(false);
+      }
+    };
+
+    fetchCategories();
+  }, []); // Empty dependency array means this runs once on mount
+
+
+  // Use dynamic categories if available, else static
+  const categoriesToDisplay = categoriesData.length > 0 ? categoriesData : staticCategories;
+
 
   return (
     <main className="flex-1 bg-white">
@@ -34,9 +114,17 @@ export default function Home() {
       <section className="relative w-full h-[90vh] flex items-center justify-center overflow-hidden">
         {/* YouTube Background Video */}
         <div className="absolute top-0 left-0 w-full h-full z-0 pointer-events-none bg-white">
+          {/* IMPORTANT: Replace "about:blank" with your actual YouTube embed URL.
+              Example: src="https://www.youtube.com/embed/YOUR_VIDEO_ID?autoplay=1&mute=1&loop=1&playlist=YOUR_VIDEO_ID&controls=0&showinfo=0&rel=0&modestbranding=1&enablejsapi=1"
+              - `autoplay=1`: Starts video automatically (may be restricted by browsers).
+              - `mute=1`: Mutes the video (often required for autoplay).
+              - `loop=1&playlist=YOUR_VIDEO_ID`: Makes the video loop. `playlist` must be the same as `YOUR_VIDEO_ID`.
+              - `controls=0`, `showinfo=0`, `rel=0`, `modestbranding=1`: For a cleaner background video look.
+              - `enablejsapi=1`: Allows JavaScript control (not strictly needed for just autoplay/loop).
+          */}
           <iframe
             className="w-full h-full object-cover bg-white"
-            src="https://www.youtube.com/embed/O9vO_CVNXlg?autoplay=1&mute=1&controls=0&loop=1&playlist=O9vO_CVNXlg&modestbranding=1&showinfo=0"
+            src="about:blank" // Placeholder for now, replace with actual YouTube embed URL
             title="AdShare Background Video"
             allow="autoplay; fullscreen"
             allowFullScreen
@@ -90,25 +178,33 @@ export default function Home() {
             Find exactly what you're looking for in our organized categories.
           </p>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6 max-w-7xl mx-auto">
-            {categories.map((category, index) => (
-              <div
-                key={index}
-                onClick={() => navigate(category.href)}
-                className="cursor-pointer transition-transform hover:scale-105"
-              >
-                <Card className="hover:shadow-md transition border border-gray-800 hover:border-brand-magenta-300 group bg-white">
-                  <CardContent className="p-6 flex flex-col items-center text-center h-60 justify-center">
-                    <div className="mb-4 rounded-full bg-brand-magenta-600 p-3 text-white">
-                      {category.icon}
-                    </div>
-                    <div className="bg-brand-magenta-600 text-white px-5 py-1.5 rounded-full font-medium group-hover:bg-white group-hover:text-brand-magenta-700 transition-colors border border-transparent group-hover:border-brand-magenta-500">
-                      {category.title}
-                    </div>
-                    <p className="text-sm text-gray-500 mt-2">{category.count} listings</p>
-                  </CardContent>
-                </Card>
-              </div>
-            ))}
+            {loadingCategories ? (
+              <p className="col-span-full text-center text-gray-600">Loading categories...</p>
+            ) : errorCategories ? (
+              <p className="col-span-full text-center text-red-500">{errorCategories}</p>
+            ) : (
+              categoriesToDisplay.map((category) => ( // Removed index, using category.title as key
+                <div
+                  key={category.title} // Using category title as key for uniqueness
+                  onClick={() => navigate(category.href)}
+                  className="cursor-pointer transition-transform hover:scale-105"
+                >
+                  <Card className="hover:shadow-md transition border border-gray-800 hover:border-brand-magenta-300 group bg-white">
+                    <CardContent className="p-6 flex flex-col items-center text-center h-60 justify-center">
+                      <div className="mb-4 rounded-full bg-brand-magenta-600 p-3 text-white">
+                        {category.icon}
+                      </div>
+                      <div className="bg-brand-magenta-600 text-white px-5 py-1.5 rounded-full font-medium group-hover:bg-white group-hover:text-brand-magenta-700 transition-colors border border-transparent group-hover:border-brand-magenta-500">
+                        {category.title}
+                      </div>
+                      <p className="text-sm text-gray-500 mt-2">
+                        {typeof category.count === 'number' ? `${category.count} listings` : 'N/A listings'}
+                      </p>
+                    </CardContent>
+                  </Card>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </section>
@@ -120,11 +216,14 @@ export default function Home() {
           <p className="text-gray-600 mb-10 max-w-xl mx-auto">
             Check out our most popular listings across all categories.
           </p>
+          {/* FeaturedListings component now handles its own loading, error, and data display */}
           <FeaturedListings />
+
           <Button
             variant="outline"
             size="lg"
             className="mt-8 border-brand-magenta-400 text-brand-magenta-600 hover:bg-brand-magenta-600 font-medium"
+            onClick={() => navigate("/listings")}
           >
             View All Listings
           </Button>

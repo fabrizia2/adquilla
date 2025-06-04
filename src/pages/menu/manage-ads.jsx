@@ -1,15 +1,16 @@
 // src/pages/menu/manage-ads.jsx
+"use client";
+
 import React, { useState, useEffect, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../layouts/AuthProvider';
 import { Button } from "../../components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "../../components/ui/card";
 import { Badge } from "../../components/ui/badge";
-import { Plus, Edit, Trash2, Eye } from "../../components/icons"; // Assuming these are custom icons
-import { ShoppingBag } from "lucide-react"; // Using lucide-react for ShoppingBag
-import { toast } from "react-hot-toast"; // For consistent notifications
+import { Plus, Edit, Trash2, Eye } from "../../components/icons";
+import { ShoppingBag } from "lucide-react";
+import { toast } from "react-hot-toast";
 
-// Import AlertDialog components
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,7 +20,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  // AlertDialogTrigger, // Not explicitly used with manual control, but good to know it exists
 } from "../../components/ui/alert-dialog";
 
 
@@ -30,30 +30,27 @@ export default function ManageAdsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // State for the delete confirmation dialog
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [adToDeleteId, setAdToDeleteId] = useState(null);
-  // No need for a separate deleteStatus as toast handles feedback
+
+  const [isFeatureConfirmationOpen, setIsFeatureConfirmationOpen] = useState(false);
+  const [adToFeatureId, setAdToFeatureId] = useState(null);
 
   useEffect(() => {
     const fetchUserAds = async () => {
-      // Wait for AuthProvider to finish loading authentication status
       if (loadingAuth) {
         return;
       }
 
-      // If not authenticated or user data is missing after auth loads, set error and return
       if (!isAuthenticated || !user?._id) {
         setLoading(false);
         setError("Please log in to manage your ads. If you are logged in, your user ID might be missing.");
         console.warn("Fetch aborted in ManageAdsPage: User not authenticated or user ID missing after AuthProvider loaded.");
-        // Consider navigating to login here if you want immediate redirection
-        // navigate('/auth/login');
         return;
       }
 
       setLoading(true);
-      setError(null); // Clear previous errors
+      setError(null);
 
       const token = localStorage.getItem('token');
       const userId = user._id;
@@ -84,21 +81,17 @@ export default function ManageAdsPage() {
     };
 
     fetchUserAds();
-    // Re-fetch when user/auth status changes, ensuring component updates
-  }, [user, isAuthenticated, loadingAuth, navigate]); // Added navigate to deps for clarity
+  }, [user, isAuthenticated, loadingAuth, navigate]);
 
-  // Function to open the delete dialog and set the ad ID
   const confirmDelete = (adId) => {
     setAdToDeleteId(adId);
-    setIsDeleteDialogOpen(true); // Open the AlertDialog
+    setIsDeleteDialogOpen(true);
   };
 
-  // Function to handle the actual delete request
   const handleDeleteAd = async () => {
-    if (!adToDeleteId) return; // Should not happen if dialog is opened correctly
+    if (!adToDeleteId) return;
 
-    // setDeleteStatus("Deleting..."); // Using toast instead for consistent feedback
-    toast.loading("Deleting ad...", { id: "deleteAdToast" }); // Show loading toast
+    toast.loading("Deleting ad...", { id: "deleteAdToast" });
 
     const token = localStorage.getItem('token');
 
@@ -121,19 +114,96 @@ export default function ManageAdsPage() {
         throw new Error(errorData.message || 'Failed to delete ad');
       }
 
-      // Filter out the deleted ad from the state to update UI immediately
       setUserAds(prevAds => prevAds.filter(ad => ad._id !== adToDeleteId));
       toast.success("Ad deleted successfully!", { id: "deleteAdToast" });
     } catch (err) {
       console.error("Error deleting ad:", err);
       toast.error(`Error deleting ad: ${err.message}`, { id: "deleteAdToast" });
     } finally {
-      setIsDeleteDialogOpen(false); // Close the dialog
-      setAdToDeleteId(null); // Clear the ID
+      setIsDeleteDialogOpen(false);
+      setAdToDeleteId(null);
     }
   };
 
-  // --- Conditional Rendering ---
+  const confirmFeatureAd = (adId) => {
+    setAdToFeatureId(adId);
+    setIsFeatureConfirmationOpen(true);
+  };
+
+  const handleFeatureAd = async () => {
+    if (!adToFeatureId) return;
+
+    toast.loading("Initiating payment...", { id: `featureAd-${adToFeatureId}` });
+
+    const token = localStorage.getItem('token');
+    if (!token) {
+      toast.error("You must be logged in to feature an ad.", { id: `featureAd-${adToFeatureId}` });
+      setIsFeatureConfirmationOpen(false);
+      return;
+    }
+
+    // --- CRITICAL: Construct the requestBody to match backend's expectation ---
+    const requestBody = {
+      email: user?.email, // Ensure user.email is available
+      amount: 200, // Matches your frontend's intended price
+      callback_url: `https://backend-nhs9.onrender.com/api/payments/verify?listingId=${adToFeatureId}`,
+    };
+
+    // --- CONSOLE LOGGING THE REQUEST ---
+    console.log("--- Sending to backend (Payment Initialization) ---");
+    console.log("URL:", 'https://backend-nhs9.onrender.com/api/payments/initialize');
+    console.log("Method:", 'POST');
+    console.log("Headers:", {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    });
+    console.log("Body:", requestBody);
+    console.log("--- End of backend request log ---");
+    // -----------------------------------
+
+
+    try {
+      const response = await fetch('https://backend-nhs9.onrender.com/api/payments/initialize', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      if (!response.ok) {
+        let errorMessage = 'Failed to initiate payment.';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorMessage;
+        } catch (jsonError) {
+          errorMessage = `Server error: ${response.status} ${response.statusText}. Raw response: ${await response.text()}`;
+        }
+        throw new Error(errorMessage);
+      }
+
+      const responseData = await response.json();
+      console.log("Payment initialization response:", responseData);
+
+      // --- CRITICAL FIX HERE: Use responseData.data.link for redirection ---
+      if (responseData.data && responseData.data.link) {
+        toast.success("Redirecting to payment gateway...", { id: `featureAd-${adToFeatureId}` });
+        window.location.href = responseData.data.link; // Corrected to use the 'link' property
+      } else {
+        toast.error("Payment initiated, but no redirect URL received from Flutterwave. Please check your backend's response structure.", { id: `featureAd-${adToFeatureId}` });
+      }
+
+    } catch (err) {
+      console.error("Error initiating feature ad payment:", err);
+      toast.error(`Error: ${err.message}`, { id: `featureAd-${adToFeatureId}` });
+    } finally {
+      setIsFeatureConfirmationOpen(false);
+      setAdToFeatureId(null);
+    }
+  };
+
+
   if (loading) {
     return (
       <main className="flex-1 flex flex-col items-center justify-center py-12 px-4 bg-gray-100 min-h-[60vh]">
@@ -153,7 +223,6 @@ export default function ManageAdsPage() {
     );
   }
 
-  // If no ads found
   if (userAds.length === 0) {
     return (
       <main className="flex-1 flex flex-col items-center justify-center py-12 px-4 bg-gray-100 min-h-[60vh]">
@@ -172,7 +241,6 @@ export default function ManageAdsPage() {
     );
   }
 
-  // Display Ads
   return (
     <main className="flex-1 py-12 px-4 md:px-6 bg-gray-100">
       <div className="container mx-auto">
@@ -185,8 +253,6 @@ export default function ManageAdsPage() {
             <Plus className="mr-2 h-4 w-4" /> Create New Ad
           </Button>
         </div>
-
-        {/* Removed deleteStatus div as toast handles feedback */}
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {userAds.map((ad) => (
@@ -207,7 +273,7 @@ export default function ManageAdsPage() {
                 <CardTitle className="text-lg font-bold text-gray-900 line-clamp-2">{ad.title}</CardTitle>
                 <CardDescription className="text-sm text-gray-500">{ad.location}</CardDescription>
                 <p className="text-xl font-bold text-brand-magenta-600 mt-2">
-                  {ad.price ? `$${ad.price}` : 'Price negotiable'}
+                  {ad.price ? `Ksh ${ad.price.toLocaleString()}` : 'Price negotiable'}
                 </p>
               </CardHeader>
               <CardContent className="p-4 pt-0">
@@ -216,11 +282,22 @@ export default function ManageAdsPage() {
                 </p>
               </CardContent>
               <CardFooter className="p-4 border-t border-gray-200 flex justify-end gap-2">
+                {/* Feature Ad Button - appears only if ad is NOT featured */}
+                {!ad.featured && (
+                  <Button
+                    variant="default"
+                    size="sm"
+                    className="bg-green-600 hover:bg-green-700 text-white"
+                    onClick={() => confirmFeatureAd(ad._id)}
+                  >
+                    Feature Ad
+                  </Button>
+                )}
                 <Button
                   variant="outline"
                   size="sm"
                   className="border-gray-300 text-gray-400 hover:bg-gray-200"
-                  onClick={() => navigate(`/listing/${ad._id}`)} // View ad details
+                  onClick={() => navigate(`/listing/${ad._id}`)}
                 >
                   <Eye className="h-4 w-4" />
                 </Button>
@@ -228,11 +305,10 @@ export default function ManageAdsPage() {
                   variant="outline"
                   size="sm"
                   className="border-gray-300 text-gray-400 hover:bg-gray-200"
-                  onClick={() => navigate(`/listings/${ad._id}`)} // Navigate to EditListingPage
+                  onClick={() => navigate(`/listings/${ad._id}`)}
                 >
                   <Edit className="h-4 w-4" />
                 </Button>
-                {/* Delete button, now using confirmDelete to open AlertDialog */}
                 <Button
                   variant="destructive"
                   size="sm"
@@ -265,6 +341,30 @@ export default function ManageAdsPage() {
             <AlertDialogAction asChild>
               <Button variant="destructive" onClick={handleDeleteAd}>
                 Continue
+              </Button>
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Feature Ad Confirmation AlertDialog (New) */}
+      <AlertDialog open={isFeatureConfirmationOpen} onOpenChange={setIsFeatureConfirmationOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Feature Your Ad?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Make your ad stand out! For just <span className="font-bold text-lg text-brand-magenta-600">Ksh 200</span>, your ad will be featured for <span className="font-bold text-lg text-brand-magenta-600">1 week</span>. This will increase its visibility.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel asChild>
+              <Button variant="outline" onClick={() => { setIsFeatureConfirmationOpen(false); setAdToFeatureId(null); }}>
+                Cancel
+              </Button>
+            </AlertDialogCancel>
+            <AlertDialogAction asChild>
+              <Button onClick={handleFeatureAd}>
+                Pay Now
               </Button>
             </AlertDialogAction>
           </AlertDialogFooter>
