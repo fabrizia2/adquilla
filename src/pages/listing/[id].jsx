@@ -45,7 +45,8 @@ export default function ListingPage() {
 
   // Handler for "Show Phone Number" button
   const handleShowPhoneNumber = () => {
-    if (listingData?.user?.phone) { // Access phone via listingData.user
+    // Now consistently checking for 'phone'
+    if (listingData?.user?.phone) {
       setShowPhoneNumber(prev => !prev); // Toggle visibility
       toast.success(showPhoneNumber ? "Phone number hidden" : "Phone number displayed!");
     } else {
@@ -147,7 +148,7 @@ export default function ListingPage() {
                 <span>Posted {listingData.postedDate || (listingData.createdAt ? new Date(listingData.createdAt).toLocaleDateString() : 'N/A')}</span>
               </div>
               <p className="text-2xl font-bold text-brand-magenta-600">
-                {listingData.price ? `$${listingData.price}` : 'Price not specified'}
+                {listingData.price ? `Ksh.${listingData.price}` : 'Price not specified'}
               </p>
             </div>
 
@@ -214,7 +215,8 @@ export default function ListingPage() {
                     onClick={handleShowPhoneNumber}
                   >
                     <Phone className="mr-2 h-4 w-4" />
-                    {showPhoneNumber ? (listingData.user?.contact || 'No Phone') : 'Show Phone Number'}
+                    {/* Now consistently displaying 'phone' */}
+                    {showPhoneNumber ? (listingData.user?.phone || 'No Phone') : 'Show Phone Number'}
                   </Button>
                   <Button
                     variant="outline"
