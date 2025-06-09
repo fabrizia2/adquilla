@@ -1,9 +1,9 @@
 // src/App.js
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom'; // Import useLocation
 import { ThemeProvider } from './components/theme-provider';
 import RootLayout from './layouts/root-layout';
 import Home from './pages/home';
-import CategoryPage from './pages/category/[slug]'; // Note: This might conflict with AllListingsPage's category filter
+import CategoryPage from './pages/category/[slug]';
 import ListingPage from './pages/listing/[id]';
 import LoginPage from './pages/auth/login';
 import RegisterPage from './pages/auth/register';
@@ -13,8 +13,8 @@ import { AuthProvider, AuthContext } from './layouts/AuthProvider';
 import { useContext } from 'react';
 import { Toaster } from 'react-hot-toast'; // Import Toaster for notifications
 
-// --- New imports for dropdown pages ---
-import AllListingsPage from './pages/ListingsPage'; // Renamed and imported
+// --- Existing New imports for dropdown pages ---
+import AllListingsPage from './pages/ListingsPage';
 import ManageAdsPage from './pages/menu/manage-ads';
 import FavouritesPage from './pages/menu/favourites';
 import MyAlertsPage from './pages/menu/my-alerts';
@@ -22,15 +22,25 @@ import MyDetailsPage from './pages/menu/my-details';
 import ManageJobAdsPage from './pages/menu/manage-job-ads';
 import HelpContactPage from './pages/menu/help-contact';
 import EditListingPage from './pages/EditListingPage';
-// --- End new imports ---
+
+// --- NEW: Payment Page Imports ---
+import PaymentSuccessPage from './pages/payment/PaymentSuccessPage';
+import PaymentFailurePage from './pages/payment/PaymentFailurePage';
+// --- End NEW imports ---
 
 
 // ProtectedRoute component to ensure only authenticated users can access
 const ProtectedRoute = ({ children }) => {
-  const { user } = useContext(AuthContext);
-  // Using `location` directly from window object for simplicity here,
-  // alternatively, you can import `useLocation` from 'react-router-dom'
+  const { user, loadingAuth } = useContext(AuthContext); // Get loadingAuth
+  const location = useLocation(); // Use useLocation hook
+
+  // Show a loading indicator or null while authentication status is being determined
+  if (loadingAuth) {
+    return <div>Loading authentication...</div>; // Or a spinner component
+  }
+
   if (!user) {
+    // Redirect to login, preserving the attempted path in state for redirection after login
     return <Navigate to="/auth/login" state={{ from: location.pathname }} replace />;
   }
   return children;
@@ -64,7 +74,7 @@ export default function App() {
               <Route path="category/:slug" element={<CategoryPage />} />
 
 
-              {/* Posting an Ad - could be protected */}
+              {/* Posting an Ad - could be protected by ProtectedRoute */}
               <Route path="post-ad" element={<PostAdPage />} />
 
               {/* Authentication related routes - accessible to all */}
@@ -143,13 +153,19 @@ export default function App() {
               {/* Public routes for Help & Contact - might not need protection */}
               <Route path="help-contact" element={<HelpContactPage />} />
 
+              {/* --- NEW: Payment Callback Routes --- */}
+              <Route path="payment-success" element={<PaymentSuccessPage />} />
+              <Route path="payment-failure" element={<PaymentFailurePage />} />
+              {/* --- End NEW --- */}
+
+
               {/* Catch-all route for any undefined paths */}
               <Route path="*" element={<div>404: Not Found</div>} />
             </Route>
           </Routes>
         </ThemeProvider>
       </Router>
-      <Toaster /> {/* Place Toaster ideally near the root of your app */}
+      <Toaster /> {/* Place Toaster ideally near the root of your app for global notifications */}
     </AuthProvider>
   );
 }
