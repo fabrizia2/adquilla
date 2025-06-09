@@ -9,7 +9,7 @@ import {
   FaUser,
 } from "react-icons/fa";
 import logo from "../../public/images/Adaquila.jpg"; // adjust if needed
-import { useContext, useState } from "react"; // No need for useEffect for categories anymore
+import { useContext, useState } from "react";
 import { AuthContext } from "./AuthProvider"; // <-- adjust path accordingly
 
 export default function RootLayout() {
@@ -19,6 +19,8 @@ export default function RootLayout() {
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  // NEW: State for the location search term
+  const [locationTerm, setLocationTerm] = useState(""); // Initialize empty, or with a default like "UK"
 
   // Define your specific categories here
   const fixedCategories = [
@@ -53,11 +55,27 @@ export default function RootLayout() {
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
+    const queryParams = new URLSearchParams();
+
     if (searchTerm.trim()) {
-      // Navigate to a products page with the search term as a query parameter
-      navigate(`/products?search=${encodeURIComponent(searchTerm.trim())}`);
+      queryParams.append("search", encodeURIComponent(searchTerm.trim()));
+    }
+    // NEW: Append location to query params if it exists
+    if (locationTerm.trim()) {
+      queryParams.append("location", encodeURIComponent(locationTerm.trim()));
+    }
+
+    if (queryParams.toString()) {
+      // Navigate to a products page with the search and/or location term as query parameters
+      navigate(`/products?${queryParams.toString()}`);
       setSearchTerm(""); // Clear search term after submission
+      setLocationTerm(""); // NEW: Clear location term after submission
       setIsMenuOpen(false); // Close mobile menu if open after search
+    } else {
+      // Optional: If both search and location are empty, you might want to navigate to a general listings page
+      // navigate("/products");
+      // Or simply do nothing, or show a toast message
+      console.log("Please enter a search term or location.");
     }
   };
 
@@ -86,11 +104,14 @@ export default function RootLayout() {
             />
             <div className="flex items-center px-3 text-black border-l border-gray-300">
               <FaMapMarkerAlt className="mr-1 text-pink-600 text-sm md:text-base" />
+              {/* MODIFIED: Location Input */}
               <input
                 type="text"
-                value="UK"
-                className="bg-transparent outline-none w-12 text-sm md:text-base"
-                readOnly
+                placeholder="e.g., London" // Changed placeholder
+                value={locationTerm} // Bound to locationTerm state
+                onChange={(e) => setLocationTerm(e.target.value)} // Added onChange handler
+                className="bg-transparent outline-none w-20 text-sm md:text-base" // Adjusted width for more space
+                // Removed readOnly attribute
               />
             </div>
             <button type="submit" className="bg-pink-600 px-3 py-2 hover:bg-pink-700 transition-colors">
@@ -181,11 +202,14 @@ export default function RootLayout() {
             />
             <div className="flex items-center px-3 text-black border-l border-gray-300">
               <FaMapMarkerAlt className="mr-1 text-pink-600 text-sm" />
+              {/* MODIFIED: Mobile Location Input */}
               <input
                 type="text"
-                value="UK"
-                className="bg-transparent outline-none w-10 text-sm"
-                readOnly
+                placeholder="Location" // Changed placeholder
+                value={locationTerm} // Bound to locationTerm state
+                onChange={(e) => setLocationTerm(e.target.value)} // Added onChange handler
+                className="bg-transparent outline-none w-20 text-sm" // Adjusted width
+                // Removed readOnly attribute
               />
             </div>
             <button type="submit" className="bg-pink-600 px-3 py-2 hover:bg-pink-700 transition-colors">

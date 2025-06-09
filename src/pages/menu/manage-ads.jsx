@@ -7,8 +7,8 @@ import { AuthContext } from '../../layouts/AuthProvider';
 import { Button } from "../../components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "../../components/ui/card";
 import { Badge } from "../../components/ui/badge";
-import { Plus, Edit, Trash2, Eye } from "../../components/icons";
-import { ShoppingBag } from "lucide-react";
+import { Plus, Edit, Trash2, Eye } from "../../components/icons"; // Assuming ShoppingBag is exported from icons or lucide-react
+import { ShoppingBag } from "lucide-react"; // Make sure ShoppingBag is imported if from lucide-react
 import { toast } from "react-hot-toast";
 
 import {
@@ -35,6 +35,10 @@ export default function ManageAdsPage() {
 
   const [isFeatureConfirmationOpen, setIsFeatureConfirmationOpen] = useState(false);
   const [adToFeatureId, setAdToFeatureId] = useState(null);
+
+  // Define payment details
+  const FEATURE_AD_AMOUNT = 200; // Example amount in KES
+  const FEATURE_AD_DURATION = "1 week"; // Example duration
 
   useEffect(() => {
     const fetchUserAds = async () => {
@@ -142,16 +146,26 @@ export default function ManageAdsPage() {
       return;
     }
 
+    // Ensure user email is available for the payment gateway
+    if (!user?.email) {
+      toast.error("User email not found. Cannot initiate payment.", { id: `featureAd-${adToFeatureId}` });
+      setIsFeatureConfirmationOpen(false);
+      return;
+    }
+
     // --- CRITICAL: Construct the requestBody to match backend's expectation ---
     const requestBody = {
-      email: user?.email, // Ensure user.email is available
-      amount: 200, // Matches your frontend's intended price
+      email: user.email, // Use the user's email from AuthContext
+      amount: FEATURE_AD_AMOUNT, // Use the defined amount
+      // The callback URL where Flutterwave (or other gateway) will redirect after payment
+      // It should ideally be a route on your frontend that then calls your backend to verify the payment
+      // For this example, I'm setting it to the backend's verify endpoint which will then mark the listing featured.
+      // In a production app, you might want a frontend success/failure page here.
       callback_url: `https://backend-nhs9.onrender.com/api/payments/verify?listingId=${adToFeatureId}`,
     };
 
-    // --- CONSOLE LOGGING THE REQUEST ---
-    console.log("--- Sending to backend (Payment Initialization) ---");
-    console.log("URL:", 'https://backend-nhs9.onrender.com/api/payments/initialize');
+    console.log("--- Sending to backend (Payment create-checkout-session) ---");
+    console.log("URL:", 'https://backend-nhs9.onrender.com/api/payments/create-checkout-session'); // Corrected endpoint
     console.log("Method:", 'POST');
     console.log("Headers:", {
       'Content-Type': 'application/json',
@@ -159,11 +173,9 @@ export default function ManageAdsPage() {
     });
     console.log("Body:", requestBody);
     console.log("--- End of backend request log ---");
-    // -----------------------------------
-
 
     try {
-      const response = await fetch('https://backend-nhs9.onrender.com/api/payments/initialize', {
+      const response = await fetch('https://backend-nhs9.onrender.com/api/payments/create-checkout-session', { // Corrected endpoint
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -177,8 +189,10 @@ export default function ManageAdsPage() {
         try {
           const errorData = await response.json();
           errorMessage = errorData.message || errorMessage;
+          console.error("Payment initiation error response:", errorData);
         } catch (jsonError) {
-          errorMessage = `Server error: ${response.status} ${response.statusText}. Raw response: ${await response.text()}`;
+          errorMessage = `Server error: ${response.status} ${response.statusText}. Could not parse error response.`;
+          console.error("Raw server error response:", await response.text());
         }
         throw new Error(errorMessage);
       }
@@ -186,12 +200,13 @@ export default function ManageAdsPage() {
       const responseData = await response.json();
       console.log("Payment initialization response:", responseData);
 
-      // --- CRITICAL FIX HERE: Use responseData.data.link for redirection ---
+      // CRITICAL: Use responseData.data.link for redirection as provided by your backend/payment gateway
       if (responseData.data && responseData.data.link) {
         toast.success("Redirecting to payment gateway...", { id: `featureAd-${adToFeatureId}` });
-        window.location.href = responseData.data.link; // Corrected to use the 'link' property
+        window.location.href = responseData.data.link; // Redirect to the payment gateway
       } else {
-        toast.error("Payment initiated, but no redirect URL received from Flutterwave. Please check your backend's response structure.", { id: `featureAd-${adToFeatureId}` });
+        toast.error("Payment initiated, but no redirect URL received from the server. Please check your backend's response structure.", { id: `featureAd-${adToFeatureId}` });
+        console.error("Backend response missing 'data.link':", responseData);
       }
 
     } catch (err) {
@@ -353,7 +368,7 @@ export default function ManageAdsPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Feature Your Ad?</AlertDialogTitle>
             <AlertDialogDescription>
-              Make your ad stand out! For just <span className="font-bold text-lg text-brand-magenta-600">Ksh 200</span>, your ad will be featured for <span className="font-bold text-lg text-brand-magenta-600">1 week</span>. This will increase its visibility.
+              Make your ad stand out! For just <span className="font-bold text-lg text-brand-magenta-600">Ksh {FEATURE_AD_AMOUNT}</span>, your ad will be featured for <span className="font-bold text-lg text-brand-magenta-600">{FEATURE_AD_DURATION}</span>. This will greatly increase its visibility and reach more potential buyers.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

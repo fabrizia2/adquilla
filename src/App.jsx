@@ -1,8 +1,9 @@
+// src/App.js
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from './components/theme-provider';
 import RootLayout from './layouts/root-layout';
 import Home from './pages/home';
-import CategoryPage from './pages/category/[slug]';
+import CategoryPage from './pages/category/[slug]'; // Note: This might conflict with AllListingsPage's category filter
 import ListingPage from './pages/listing/[id]';
 import LoginPage from './pages/auth/login';
 import RegisterPage from './pages/auth/register';
@@ -13,13 +14,14 @@ import { useContext } from 'react';
 import { Toaster } from 'react-hot-toast'; // Import Toaster for notifications
 
 // --- New imports for dropdown pages ---
+import AllListingsPage from './pages/ListingsPage'; // Renamed and imported
 import ManageAdsPage from './pages/menu/manage-ads';
 import FavouritesPage from './pages/menu/favourites';
 import MyAlertsPage from './pages/menu/my-alerts';
 import MyDetailsPage from './pages/menu/my-details';
 import ManageJobAdsPage from './pages/menu/manage-job-ads';
 import HelpContactPage from './pages/menu/help-contact';
-import EditListingPage from './pages/EditListingPage'; // <-- NEW IMPORT
+import EditListingPage from './pages/EditListingPage';
 // --- End new imports ---
 
 
@@ -43,8 +45,26 @@ export default function App() {
           <Routes>
             <Route path="/" element={<RootLayout />}>
               <Route index element={<Home />} />
-              <Route path="category/:slug" element={<CategoryPage />} />
+
+              {/* All Listings Page - will handle category filtering via query params */}
+              {/* This route will also handle the category links like /listings?category=Cars */}
+              <Route path="listings" element={<AllListingsPage />} />
+              {/* If you use "/products" in your RootLayout, ensure you have a route for it too */}
+              <Route path="products" element={<AllListingsPage />} /> {/* Example if your RootLayout uses /products */}
+
+              {/* Individual Listing Details Page */}
               <Route path="listing/:id" element={<ListingPage />} />
+
+              {/* Note: The CategoryPage component (e.g., /category/cars-vehicles)
+                  might now be redundant if AllListingsPage handles all category filtering
+                  via query parameters. You might want to remove it if it's no longer used.
+                  If you still use it for specific purposes (e.g., dedicated backend API call for that specific slug),
+                  keep it. But typically, /listings?category=SLUG is more flexible.
+              */}
+              <Route path="category/:slug" element={<CategoryPage />} />
+
+
+              {/* Posting an Ad - could be protected */}
               <Route path="post-ad" element={<PostAdPage />} />
 
               {/* Authentication related routes - accessible to all */}
@@ -109,9 +129,10 @@ export default function App() {
                   </ProtectedRoute>
                 }
               />
-              {/* NEW: Route for editing a listing */}
+              {/* NEW: Route for editing a listing - Ensure this path is unique and not conflicting with /listing/:id */}
+              {/* It's good practice to have edit routes under /manage-ads/edit/:id or similar */}
               <Route
-                path="listings/:id" // This path matches the navigate(`/listings/${ad._id}`) from ManageAdsPage
+                path="edit-listing/:id" // Changed from 'listings/:id' to 'edit-listing/:id' to avoid conflict
                 element={
                   <ProtectedRoute>
                     <EditListingPage /> {/* Render the new EditListingPage component */}
