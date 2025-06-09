@@ -160,7 +160,7 @@ export default function Home() {
             <Input
               type="search"
               placeholder="Search for anything..."
-              className="pl-12 pr-4 py-3 rounded-full border-none shadow-md text-gray-800"
+              className="pl-12 pr-4 py-3 rounded-full border-none shadow-md text-white"
             />
           </div>
 

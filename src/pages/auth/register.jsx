@@ -1,14 +1,16 @@
+// src/pages/auth/register.jsx
 "use client"
 
 import { useState } from "react"
-import { Link, useNavigate } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom" // CORRECTED IMPORT PATH
 import { Button } from "../../components/ui/button"
 import { Input } from "../../components/ui/input"
 import { Label } from "../../components/ui/label"
 import { Checkbox } from "../../components/ui/checkbox"
 
 export default function RegisterPage() {
-  const [name, setName] = useState("")
+  const [firstName, setFirstName] = useState("")
+  const [lastName, setLastName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
@@ -24,6 +26,10 @@ export default function RegisterPage() {
       setError("Passwords do not match")
       return
     }
+    if (!agreeTerms) {
+      setError("You must agree to the Terms of Service and Privacy Policy.")
+      return;
+    }
 
     try {
       const response = await fetch("https://backend-nhs9.onrender.com/api/auth/register", {
@@ -32,7 +38,8 @@ export default function RegisterPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          name,
+          firstName,
+          lastName,
           email,
           password,
           location,
@@ -42,7 +49,8 @@ export default function RegisterPage() {
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.message || "Registration failed")
+        const errorMessage = data.errors ? data.errors.map(err => err.msg).join(", ") : data.message || "Registration failed";
+        throw new Error(errorMessage);
       }
 
       console.log("User registered:", data)
@@ -63,28 +71,72 @@ export default function RegisterPage() {
           </div>
           {error && <p className="text-red-500 text-sm text-center">{error}</p>}
           <form onSubmit={handleSubmit} className="space-y-4">
+            {/* First Name Input */}
             <div className="space-y-2">
-              <Label htmlFor="name" className="text-gray-800">Full Name</Label>
-              <Input id="name" value={name} onChange={(e) => setName(e.target.value)} required />
+              <Label htmlFor="firstName" className="text-gray-800">First Name</Label>
+              <Input
+                id="firstName"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                required
+              />
+            </div>
+            {/* Last Name Input */}
+            <div className="space-y-2">
+              <Label htmlFor="lastName" className="text-gray-800">Last Name</Label>
+              <Input
+                id="lastName"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                required
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="email" className="text-gray-800">Email</Label>
-              <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="location" className="text-gray-800">Location</Label>
-              <Input id="location" value={location} onChange={(e) => setLocation(e.target.value)} required />
+              <Input
+                id="location"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                required
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="password" className="text-gray-800">Password</Label>
-              <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="confirm-password" className="text-gray-800">Confirm Password</Label>
-              <Input id="confirm-password" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
+              <Input
+                id="confirm-password"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+              />
             </div>
             <div className="flex items-center space-x-2">
-              <Checkbox id="terms" checked={agreeTerms} onCheckedChange={(checked) => setAgreeTerms(checked)} required />
+              <Checkbox
+                id="terms"
+                checked={agreeTerms}
+                onCheckedChange={(checked) => setAgreeTerms(checked)}
+                required
+              />
               <Label htmlFor="terms" className="text-sm font-normal text-black">
                 I agree to the{" "}
                 <Link to="/terms" className="text-primary hover:underline">Terms of Service</Link> and{" "}

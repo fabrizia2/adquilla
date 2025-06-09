@@ -232,7 +232,7 @@ export default function ManageAdsPage() {
         <h3 className="text-xl font-medium text-gray-900">No ads found</h3>
         <p className="text-gray-700 mt-2 mb-6 text-center">You haven't posted any ads yet. Start by creating one!</p>
         <Button
-          onClick={() => navigate("/create-listing")}
+          onClick={() => navigate("/post-ad")}
           className="bg-brand-magenta-600 hover:bg-brand-magenta-700 text-white font-medium"
         >
           <Plus className="mr-2 h-4 w-4" /> Create New Ad
