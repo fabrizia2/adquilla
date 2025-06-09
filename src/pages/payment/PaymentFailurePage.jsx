@@ -24,7 +24,7 @@ export default function PaymentFailurePage() {
 
   return (
     <main className="flex-1 flex flex-col items-center justify-center py-12 px-4 bg-gray-100 min-h-[calc(100vh-theme(spacing.20))]">
-      <Card className="w-full max-w-md p-6 text-center shadow-lg">
+      <Card className="w-full max-w-md p-6 text-center shadow-lg bg-white">
         <CardHeader className="items-center pb-4">
           <XCircle className="h-20 w-20 text-red-500 mb-4" />
           <CardTitle className="text-3xl font-bold text-gray-900">Payment Failed</CardTitle>
@@ -54,7 +54,7 @@ export default function PaymentFailurePage() {
             <Button asChild variant="default" className="bg-brand-magenta-600 hover:bg-brand-magenta-700 text-white w-full">
               <Link to="/manage-ads">Go to Manage Ads</Link>
             </Button>
-            <Button asChild variant="ghost" className="w-full">
+            <Button asChild variant="ghost" className="bg-brand-magenta-600 hover:bg-brand-magenta-700 text-white w-full">
               <Link to="/">Return to Homepage</Link>
             </Button>
           </div>
