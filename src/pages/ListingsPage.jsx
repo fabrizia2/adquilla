@@ -24,7 +24,7 @@ export default function AllListingsPage() {
     "Property",
     "Pets",
     "Jobs",
-    "Community",
+    "Furniture",
     "Electronics",
     "Others",
   ];

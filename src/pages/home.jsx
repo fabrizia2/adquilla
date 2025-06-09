@@ -37,7 +37,7 @@ export default function Home() {
       case 'services': return <ShoppingBag className="h-8 w-8 text-brand-magenta-600" />;
       case 'pets': return <ShoppingBag className="h-8 w-8 text-brand-magenta-600" />;
       case 'jobs': return <ShoppingBag className="h-8 w-8 text-brand-magenta-600" />;
-      case 'community': return <ShoppingBag className="h-8 w-8 text-brand-magenta-600" />;
+      case 'furniture': return <Sofa className="h-8 w-8 text-brand-magenta-600" />;
       case 'others': return <ShoppingBag className="h-8 w-8 text-brand-magenta-600" />;
       default: return <ShoppingBag className="h-8 w-8 text-brand-magenta-600" />;
     }
@@ -50,7 +50,7 @@ export default function Home() {
     { icon: getCategoryIcon("Property"), title: "Property", count: "N/A", href: "/listings?category=" + encodeURIComponent("Property") },
     { icon: getCategoryIcon("Pets"), title: "Pets", count: "N/A", href: "/listings?category=" + encodeURIComponent("Pets") },
     { icon: getCategoryIcon("Jobs"), title: "Jobs", count: "N/A", href: "/listings?category=" + encodeURIComponent("Jobs") },
-    { icon: getCategoryIcon("Community"), title: "Community", count: "N/A", href: "/listings?category=" + encodeURIComponent("Community") },
+    { icon: getCategoryIcon("Furniture"), title: "Furniture", count: "N/A", href: "/listings?category=" + encodeURIComponent("Furniture") },
     { icon: getCategoryIcon("Electronics"), title: "Electronics", count: "N/A", href: "/listings?category=" + encodeURIComponent("Electronics") },
     { icon: getCategoryIcon("Others"), title: "Others", count: "N/A", href: "/listings?category=" + encodeURIComponent("Others") },
   ];

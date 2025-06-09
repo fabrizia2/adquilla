@@ -30,7 +30,7 @@ export default function RootLayout() {
     "Property",
     "Pets",
     "Jobs",
-    "Community",
+    "Furniture",
     "Electronics",
     "Others",
   ];

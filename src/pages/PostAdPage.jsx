@@ -24,7 +24,7 @@ const fixedCategories = [
   "Property",
   "Pets",
   "Jobs",
-  "Community",
+  "Furniture",
   "Electronics", // Added based on your request
   "Others",     // Added based on your request
 ];
