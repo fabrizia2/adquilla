@@ -7,6 +7,8 @@ import CategoryPage from './pages/category/[slug]';
 import ListingPage from './pages/listing/[id]';
 import LoginPage from './pages/auth/login';
 import RegisterPage from './pages/auth/register';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
 import CreateListingPage from './pages/create-listing';
 import PostAdPage from './pages/PostAdPage';
 import { AuthProvider, AuthContext } from './layouts/AuthProvider';
@@ -80,6 +82,8 @@ export default function App() {
               {/* Authentication related routes - accessible to all */}
               <Route path="auth/login" element={<LoginPage />} />
               <Route path="auth/register" element={<RegisterPage />} />
+              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+              <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
 
               {/* Protected Routes - only accessible to authenticated users */}
               <Route

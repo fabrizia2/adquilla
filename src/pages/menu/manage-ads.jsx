@@ -201,9 +201,9 @@ export default function ManageAdsPage() {
       console.log("Payment initialization response:", responseData);
 
       // CRITICAL: Use responseData.data.link for redirection as provided by your backend/payment gateway
-      if (responseData.data && responseData.data.link) {
+      if (responseData.data && responseData.data.url) {
         toast.success("Redirecting to payment gateway...", { id: `featureAd-${adToFeatureId}` });
-        window.location.href = responseData.data.link; // Redirect to the payment gateway
+        window.location.href = responseData.data.url; // Redirect to the payment gateway
       } else {
         toast.error("Payment initiated, but no redirect URL received from the server. Please check your backend's response structure.", { id: `featureAd-${adToFeatureId}` });
         console.error("Backend response missing 'data.link':", responseData);
