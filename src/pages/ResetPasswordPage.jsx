@@ -82,13 +82,13 @@ export default function ResetPasswordPage() {
       console.log("DEBUG: Full request body JSON:", JSON.stringify({ token: resetToken, newPassword: password }));
       // --- END DEBUG CONSOLE LOGS ---
 
-      const response = await fetch('https://backend-nhs9.onrender.com/api/auth/reset-password', {
+      const response = await fetch('https://backend-nhs9.onrender.com/api/auth/reset-password?token=${resetToken},', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         // Backend expects 'newPassword'
-        body: JSON.stringify({ token: resetToken, newPassword: password }), 
+        body: JSON.stringify({ newPassword: password }), 
       });
 
       if (response.ok) {
