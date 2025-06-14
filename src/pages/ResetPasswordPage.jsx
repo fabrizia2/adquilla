@@ -1,10 +1,8 @@
-// src/pages/ResetPasswordPage.jsx
-
 "use client"; // If you're using Next.js App Router
 
 import React, { useState, useEffect } from 'react';
-// Changed useParams to useLocation
-import { useLocation, useNavigate, Link } from 'react-router-dom';
+// Changed useParams to useLocation as the token is a query parameter
+import { useLocation, useNavigate, Link } from 'react-router-dom'; 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '../components/ui/card';
 import { Label } from '../components/ui/label';
 import { Input } from '../components/ui/input';
@@ -20,10 +18,9 @@ export default function ResetPasswordPage() {
   const [resetToken, setResetToken] = useState(null); // Renamed to avoid confusion with the useParams 'token'
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true); // Set true initially to show "Checking link validity..."
   const [tokenValid, setTokenValid] = useState(false); // This will indicate if a token was successfully found
   const [validationMessage, setValidationMessage] = useState('');
-
 
   // --- CHANGE 2: Extract token from URLSearchParams in useEffect ---
   useEffect(() => {
@@ -44,66 +41,72 @@ export default function ResetPasswordPage() {
       console.error("ResetPasswordPage: No token found in URL query parameters.");
     }
     // Set loading to false after token check, as this is the initial load state
-    // If you had an API call to verify the token, you'd set loading=true before it
-    // and loading=false after. For now, this handles the initial UI state.
-    // If you add a /verify-token endpoint, integrate setLoading around that fetch.
     setLoading(false); 
   }, [location.search]); // Depend on location.search to re-run if URL changes
 
   // --- CHANGE 3: Use resetToken in handleResetPassword ---
   const handleResetPassword = async (e) => {
     e.preventDefault();
-    setLoading(true);
+    setLoading(true); // Set loading to true while submitting
     setValidationMessage(''); // Clear previous messages
 
     // --- Validate presence of extracted token ---
     if (!resetToken) {
       setValidationMessage('Password reset token is missing from the URL.');
       setLoading(false);
+      console.error("DEBUG: handleResetPassword - resetToken is missing.");
       return;
     }
 
     if (password.length < 8) {
       setValidationMessage('Password must be at least 8 characters long.');
       setLoading(false);
+      console.error("DEBUG: handleResetPassword - Password too short or empty.");
       return;
     }
 
     if (password !== confirmPassword) {
       setValidationMessage('Passwords do not match.');
       setLoading(false);
+      console.error("DEBUG: handleResetPassword - Passwords do not match.");
       return;
     }
 
     try {
       console.log("ResetPasswordPage: Submitting new password with token...");
-      // --- Use resetToken in the API call ---
-      // IMPORTANT: Your backend POST endpoint should typically expect the token
-      // in the request body, not in the URL path for a POST.
-      // Confirm your backend's exact endpoint. I've adjusted it to send in body.
+      
+      // --- ADDED DEBUG CONSOLE LOGS ---
+      console.log("DEBUG: Token value being sent:", resetToken);
+      // Mask password for security, but confirm it's not empty
+      console.log("DEBUG: New password value being sent (first 3 chars):", password ? password.substring(0, 3) + '...' : '[Password is empty]');
+      console.log("DEBUG: Full request body JSON:", JSON.stringify({ token: resetToken, newPassword: password }));
+      // --- END DEBUG CONSOLE LOGS ---
+
       const response = await fetch('https://backend-nhs9.onrender.com/api/auth/reset-password', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ token: resetToken, newPassword: password }), // Send resetToken in the body
+        // Backend expects 'newPassword'
+        body: JSON.stringify({ token: resetToken, newPassword: password }), 
       });
 
       if (response.ok) {
         toast.success('Your password has been successfully reset! You can now log in with your new password.', { duration: 5000 });
+        console.log("ResetPasswordPage: Password reset successful. Redirecting to login.");
         navigate('/auth/login'); // Redirect to login page
       } else {
         const errorData = await response.json();
         setValidationMessage(errorData.message || 'Failed to reset password. Please try again.');
         toast.error(errorData.message || 'Failed to reset password.');
-        console.error('Reset password error:', errorData);
+        console.error('Reset password error from backend:', errorData); // Log the specific error from backend
       }
     } catch (error) {
       setValidationMessage('Network error. Please check your connection and try again.');
       toast.error('Network error. Please check your connection.');
       console.error('Reset password network error:', error);
     } finally {
-      setLoading(false);
+      setLoading(false); // Set loading to false after submission attempt
     }
   };
 
