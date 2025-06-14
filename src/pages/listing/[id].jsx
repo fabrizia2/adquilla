@@ -225,7 +225,7 @@ export default function ListingPage() {
                   >
                     <Phone className="mr-2 h-4 w-4" />
                     {/* Now consistently displaying 'phone' */}
-                    {showPhoneNumber ? (listingData.user?.phone || 'No Phone') : 'Show Phone Number'}
+                    {showPhoneNumber ? (listingData.user?.phoneNumber || 'No Phone') : 'Show Phone Number'}
                   </Button>
                   <Button
                     variant="outline"

@@ -21,15 +21,21 @@ export default function MyDetailsPage() {
   // --- 1. Fetch correct user details on component mount ---
   useEffect(() => {
     const fetchUserDetails = async () => {
+      console.log("--- Starting fetchUserDetails ---");
+      console.log("User from AuthContext:", user);
+      console.log("Token from AuthContext:", token ? "Token present" : "Token is null/undefined");
+
       if (!user || !token) {
         setLoading(false);
-        // Optionally redirect to login if no user/token, though AuthProvider should handle this
-        // navigate('/auth/login');
+        console.warn("User or token is missing from AuthContext. Cannot fetch details. Redirecting or showing error.");
+        // If user/token are genuinely missing, AuthProvider should typically handle login redirect.
+        // The error message "Could not load user details..." will be shown due to !userDetails.
         return;
       }
 
       try {
         setLoading(true);
+        console.log("Attempting to fetch from URL:", `${BACKEND_URL}/api/auth/me`);
         const response = await fetch(`${BACKEND_URL}/api/auth/me`, {
           method: 'GET',
           headers: {
@@ -38,25 +44,42 @@ export default function MyDetailsPage() {
           },
         });
 
+        console.log("API Response Status:", response.status);
+        console.log("API Response OK property:", response.ok);
+
         if (!response.ok) {
           if (response.status === 401) { // Unauthorized, token expired
             toast.error("Your session has expired. Please log in again.");
             logout(); // Log out the user
             navigate('/auth/login');
+            console.error("401 Unauthorized: Session expired. Redirected to login.");
             return;
           }
-          throw new Error('Failed to fetch user details.');
+          const errorResponseText = await response.text(); // Get the raw response text for debugging
+          console.error(`Fetch not OK. Status: ${response.status}. Raw response text:`, errorResponseText);
+          throw new Error(`Failed to fetch user details. Status: ${response.status}. Message: ${errorResponseText || 'No specific error message from backend'}`);
         }
 
-        const data = await response.json();
-        // Assuming backend sends fields like firstName, lastName, email, phone, address, city, country
-        setUserDetails(data.user);
-        setOriginalUserDetails(data.user); // Store original for cancel functionality
+        const data = await response.json(); // Attempt to parse response as JSON
+        console.log("Successfully parsed JSON data from backend:", data);
+
+        // Crucial Check: Ensure the parsed data is not empty or malformed
+        if (!data || typeof data !== 'object' || Object.keys(data).length === 0) {
+            console.error("Received empty, null, or non-object data from backend for user details.");
+            throw new Error("Received empty or invalid user data from backend.");
+        }
+
+        // FIX APPLIED: Set userDetails directly from 'data' as backend is not nesting
+        setUserDetails(data);
+        setOriginalUserDetails(data);
+        console.log("User details successfully set to state:", data);
+
       } catch (error) {
         toast.error(error.message || 'Error fetching user details.');
-        console.error('Error fetching user details:', error);
+        console.error('Catch block error during fetchUserDetails:', error);
       } finally {
         setLoading(false);
+        console.log("--- fetchUserDetails finished ---");
       }
     };
 
@@ -69,21 +92,26 @@ export default function MyDetailsPage() {
       ...prev,
       [name]: value,
     }));
+    console.log(`handleChange: Updated ${name} to ${value}`);
   };
 
   // --- 2. Use an Edit API (PUT request) ---
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
+    console.log("--- Starting handleSubmit (Update User) ---");
+    console.log("User details being sent for update:", userDetails);
 
     if (!userDetails || !token) {
-      toast.error("User data or token missing.");
+      toast.error("User data or token missing for update operation.");
       setSubmitting(false);
+      console.error("Update failed: User data or token missing.");
       return;
     }
 
     try {
-      const response = await fetch(`${BACKEND_URL}/api/auth/me`, { // Assuming /api/users/me for update
+      // Confirmed PUT endpoint is /api/auth/me
+      const response = await fetch(`${BACKEND_URL}/api/auth/me`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -92,40 +120,53 @@ export default function MyDetailsPage() {
         body: JSON.stringify(userDetails),
       });
 
+      console.log("Update API Response Status:", response.status);
+      console.log("Update API Response OK property:", response.ok);
+
       if (!response.ok) {
-        const errorData = await response.json();
+        const errorData = await response.json(); // Attempt to parse error data
         if (response.status === 401) {
           toast.error("Your session has expired. Please log in again.");
           logout();
           navigate('/auth/login');
+          console.error("401 Unauthorized during update: Session expired.");
           return;
         }
+        console.error("Update failed. Error data:", errorData);
         throw new Error(errorData.message || 'Failed to update details');
       }
 
-      const updatedData = await response.json();
+      const updatedData = await response.json(); // Get updated user data from response
       toast.success('Details updated successfully!');
       setIsEditing(false);
-      setUserDetails(updatedData.user); // Update local state
-      setOriginalUserDetails(updatedData.user); // Update original for future cancels
+      console.log("Update successful. New data from backend:", updatedData);
+
+      // FIX APPLIED: Set userDetails directly from 'updatedData'
+      setUserDetails(updatedData);
+      setOriginalUserDetails(updatedData);
 
       // Update user in AuthContext if such a function exists
       if (updateUserInContext) {
-        updateUserInContext(updatedData.user);
+        // FIX APPLIED: Pass updatedData directly to AuthContext
+        updateUserInContext(updatedData);
+        console.log("User updated in AuthContext.");
       }
 
     } catch (error) {
-      toast.error(`Error: ${error.message}`);
-      console.error('Error updating user details:', error);
+      toast.error(`Error updating details: ${error.message}`);
+      console.error('Catch block error during handleSubmit:', error);
     } finally {
       setSubmitting(false);
+      console.log("--- handleSubmit finished ---");
     }
   };
 
   // --- 3. Add a Delete Account button ---
   const handleDeleteAccount = async () => {
+    console.log("--- Starting handleDeleteAccount ---");
     if (!user || !token) {
-      toast.error("User data or token missing. Cannot delete.");
+      toast.error("User data or token missing. Cannot delete account.");
+      console.error("Delete failed: User data or token missing.");
       return;
     }
 
@@ -133,8 +174,12 @@ export default function MyDetailsPage() {
 
     if (confirmDelete) {
       setDeleting(true);
+      console.log("User confirmed account deletion.");
       try {
-        const response = await fetch(`${BACKEND_URL}/api/users/me`, { // Assuming /api/users/me for deletion
+        // IMPORTANT CHECK: Ensure this DELETE endpoint matches your backend's actual route.
+        // You listed /api/auth/me in your description, but your previous code had /api/users/me.
+        // I'm assuming /api/auth/me for consistency with GET/PUT, but verify this on your backend.
+        const response = await fetch(`${BACKEND_URL}/api/auth/me`, {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -142,14 +187,19 @@ export default function MyDetailsPage() {
           },
         });
 
+        console.log("Delete API Response Status:", response.status);
+        console.log("Delete API Response OK property:", response.ok);
+
         if (!response.ok) {
           const errorData = await response.json();
           if (response.status === 401) {
             toast.error("Your session has expired. Please log in again.");
             logout();
             navigate('/auth/login');
+            console.error("401 Unauthorized during delete: Session expired.");
             return;
           }
+          console.error("Delete failed. Error data:", errorData);
           throw new Error(errorData.message || 'Failed to delete account.');
         }
 
@@ -157,23 +207,30 @@ export default function MyDetailsPage() {
         setDeleting(false);
         logout(); // Log out the user from AuthContext
         navigate('/'); // Redirect to homepage or login page
+        console.log("Account deleted and user logged out. Redirecting to home.");
       } catch (error) {
         toast.error(`Error deleting account: ${error.message}`);
-        console.error('Error deleting account:', error);
+        console.error('Catch block error during handleDeleteAccount:', error);
         setDeleting(false);
       }
+    } else {
+      console.log("Account deletion cancelled by user.");
     }
   };
 
 
   if (loading) {
+    console.log("Rendering: Loading state active...");
     return <p className="text-center mt-10 text-gray-700">Loading your details...</p>;
   }
 
+  // This is the condition that's being met, causing the error message
   if (!userDetails) {
+    console.error("Rendering: userDetails is null/undefined after loading finished. Displaying error message.");
     return <p className="text-center mt-10 text-red-600">Could not load user details. Please try logging in again.</p>;
   }
 
+  console.log("Rendering: User details are available, displaying form.");
   // Determine which fields to display/edit for contact details
   const contactFields = [
     { label: 'First name', name: 'firstName' },
@@ -250,7 +307,7 @@ export default function MyDetailsPage() {
               </label>
               {!isEditing ? (
                 <p className="text-gray-800 text-lg font-medium">
-                  {userDetails.phonenumber || ( // Assuming backend sends 'phonenumber'
+                  {userDetails.phoneNumber || ( // Assuming backend sends 'phonenumber'
                     <a href="#" className="text-teal-600 hover:underline" onClick={(e) => {
                       e.preventDefault();
                       setIsEditing(true); // Allow adding phone number
@@ -309,13 +366,11 @@ export default function MyDetailsPage() {
           </div>
         </form>
 
-        ---
-
         {/* Delete Account Section */}
         <div className="mt-12 pt-8 border-t border-gray-200">
           <h2 className="text-xl font-semibold text-red-700 mb-4">Danger Zone</h2>
           <p className="text-gray-700 mb-6">
-            Deleting your account is irreversible and will remove all your data.
+            Deletes your account and all associated data. This action is irreversible.
           </p>
           <button
             onClick={handleDeleteAccount}

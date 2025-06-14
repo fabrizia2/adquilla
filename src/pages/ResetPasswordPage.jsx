@@ -3,7 +3,8 @@
 "use client"; // If you're using Next.js App Router
 
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+// Changed useParams to useLocation
+import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '../components/ui/card';
 import { Label } from '../components/ui/label';
 import { Input } from '../components/ui/input';
@@ -11,38 +12,52 @@ import { Button } from '../components/ui/button';
 import { toast } from 'react-hot-toast'; // Assuming you have react-hot-toast setup
 
 export default function ResetPasswordPage() {
-  const { token } = useParams(); // Get the token from the URL
+  // --- CHANGE 1: Use useLocation to get query params ---
+  const location = useLocation();
   const navigate = useNavigate();
 
+  // --- NEW STATE for the actual token extracted from URL ---
+  const [resetToken, setResetToken] = useState(null); // Renamed to avoid confusion with the useParams 'token'
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [tokenValid, setTokenValid] = useState(false);
+  const [tokenValid, setTokenValid] = useState(false); // This will indicate if a token was successfully found
   const [validationMessage, setValidationMessage] = useState('');
 
-  // Optional: Verify token on component mount (good for UX, but backend will also verify)
+
+  // --- CHANGE 2: Extract token from URLSearchParams in useEffect ---
   useEffect(() => {
-    const verifyToken = async () => {
-      if (!token) {
-        setValidationMessage('No reset token found in the URL.');
-        setTokenValid(false);
-        return;
-      }
-      // You might have a backend endpoint to quickly verify token validity
-      // This is less critical as your main reset endpoint will do full validation.
-      // For simplicity, we'll assume the presence of token implies it's from a valid link for initial display.
-      setTokenValid(true);
-    };
-    verifyToken();
-  }, [token]);
+    console.log("ResetPasswordPage: Running useEffect to check URL for token...");
+    const queryParams = new URLSearchParams(location.search);
+    const tokenFromUrl = queryParams.get('token'); // Get the 'token' query parameter
 
+    if (tokenFromUrl) {
+      setResetToken(tokenFromUrl); // Set the extracted token
+      setTokenValid(true); // Indicate that a token was found
+      setValidationMessage(''); // Clear any previous validation messages
+      console.log("ResetPasswordPage: Token found in URL. Token value:", tokenFromUrl);
+    } else {
+      setResetToken(null); // Ensure token state is null if not found
+      setTokenValid(false); // Indicate no valid token
+      setValidationMessage('No reset token found in the URL. Please ensure you are using the full link from your email.');
+      toast.error('Invalid Link: No reset token found in the URL.');
+      console.error("ResetPasswordPage: No token found in URL query parameters.");
+    }
+    // Set loading to false after token check, as this is the initial load state
+    // If you had an API call to verify the token, you'd set loading=true before it
+    // and loading=false after. For now, this handles the initial UI state.
+    // If you add a /verify-token endpoint, integrate setLoading around that fetch.
+    setLoading(false); 
+  }, [location.search]); // Depend on location.search to re-run if URL changes
 
+  // --- CHANGE 3: Use resetToken in handleResetPassword ---
   const handleResetPassword = async (e) => {
     e.preventDefault();
     setLoading(true);
     setValidationMessage(''); // Clear previous messages
 
-    if (!token) {
+    // --- Validate presence of extracted token ---
+    if (!resetToken) {
       setValidationMessage('Password reset token is missing from the URL.');
       setLoading(false);
       return;
@@ -61,17 +76,22 @@ export default function ResetPasswordPage() {
     }
 
     try {
+      console.log("ResetPasswordPage: Submitting new password with token...");
+      // --- Use resetToken in the API call ---
+      // IMPORTANT: Your backend POST endpoint should typically expect the token
+      // in the request body, not in the URL path for a POST.
+      // Confirm your backend's exact endpoint. I've adjusted it to send in body.
       const response = await fetch('https://backend-nhs9.onrender.com/api/auth/reset-password', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ token, newPassword: password }),
+        body: JSON.stringify({ token: resetToken, newPassword: password }), // Send resetToken in the body
       });
 
       if (response.ok) {
         toast.success('Your password has been successfully reset! You can now log in with your new password.', { duration: 5000 });
-        navigate('/login'); // Redirect to login page
+        navigate('/auth/login'); // Redirect to login page
       } else {
         const errorData = await response.json();
         setValidationMessage(errorData.message || 'Failed to reset password. Please try again.');
@@ -87,7 +107,19 @@ export default function ResetPasswordPage() {
     }
   };
 
+  // --- CHANGE 4: Use tokenValid for conditional rendering ---
   if (!tokenValid) {
+    // Show loading while we're waiting for useEffect to check token, then show error if invalid
+    if (loading) { // If loading is true, it means useEffect is still running its initial check
+        return (
+            <div className="flex items-center justify-center min-h-[calc(100vh-80px)] bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+                <Card className="w-full max-w-md text-center">
+                    <CardContent><p>Checking link validity...</p></CardContent>
+                </Card>
+            </div>
+        );
+    }
+    // Otherwise, if not valid and not loading, show the error message
     return (
       <div className="flex items-center justify-center min-h-[calc(100vh-80px)] bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
         <Card className="w-full max-w-md text-center">
@@ -95,7 +127,7 @@ export default function ResetPasswordPage() {
             <CardTitle className="text-2xl font-bold">Invalid Link</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-red-500 mb-4">{validationMessage || 'The password reset link is invalid or expired.'}</p>
+            <p className="text-red-500 mb-4">{validationMessage || 'The password reset link is invalid or expired. Please request a new one.'}</p>
             <Button asChild className="w-full bg-gray-800 hover:bg-gray-700 text-white">
               <Link to="/forgot-password">Request a New Link</Link>
             </Button>
@@ -105,6 +137,7 @@ export default function ResetPasswordPage() {
     );
   }
 
+  // --- CHANGE 5: The main form is rendered only if tokenValid is true ---
   return (
     <div className="flex items-center justify-center min-h-[calc(100vh-80px)] bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <Card className="w-full max-w-md">
