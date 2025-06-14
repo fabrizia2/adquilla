@@ -153,26 +153,11 @@ export default function ManageAdsPage() {
       return;
     }
 
-    // --- CRITICAL: Construct the requestBody to match backend's expectation ---
     const requestBody = {
-      email: user.email, // Use the user's email from AuthContext
-      amount: FEATURE_AD_AMOUNT, // Use the defined amount
-      // The callback URL where Flutterwave (or other gateway) will redirect after payment
-      // It should ideally be a route on your frontend that then calls your backend to verify the payment
-      // For this example, I'm setting it to the backend's verify endpoint which will then mark the listing featured.
-      // In a production app, you might want a frontend success/failure page here.
+      email: user.email,
+      amount: FEATURE_AD_AMOUNT,
       callback_url: `https://backend-nhs9.onrender.com/api/payments/verify?listingId=${adToFeatureId}`,
     };
-
-    console.log("--- Sending to backend (Payment create-checkout-session) ---");
-    console.log("URL:", 'https://backend-nhs9.onrender.com/api/payments/create-checkout-session');
-    console.log("Method:", 'POST');
-    console.log("Headers:", {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-    });
-    console.log("Body:", requestBody);
-    console.log("--- End of backend request log ---");
 
     try {
       const response = await fetch('https://backend-nhs9.onrender.com/api/payments/create-checkout-session', {
@@ -198,15 +183,13 @@ export default function ManageAdsPage() {
       }
 
       const responseData = await response.json();
-      console.log("Payment initialization response:", responseData);
 
-      // CRITICAL FIX: Changed from responseData.data && responseData.data.link to just responseData.url
-      if (responseData.url) { // CORRECTED: Check directly for 'url'
+      if (responseData.url) {
         toast.success("Redirecting to payment gateway...", { id: `featureAd-${adToFeatureId}` });
-        window.location.href = responseData.url; // Redirect to the payment gateway
+        window.location.href = responseData.url;
       } else {
         toast.error("Payment initiated, but no redirect URL received from the server. Please check your backend's response structure.", { id: `featureAd-${adToFeatureId}` });
-        console.error("Backend response missing 'url':", responseData); // Updated error message
+        console.error("Backend response missing 'url':", responseData);
       }
 
     } catch (err) {
@@ -230,7 +213,7 @@ export default function ManageAdsPage() {
   if (error) {
     return (
       <main className="flex-1 flex flex-col items-center justify-center py-12 px-4 bg-gray-100 min-h-[60vh]">
-        <p className="text-xl text-red-600 mb-4">Error: {error}</p>
+        <p className="text-xl text-red-600 mb-4 text-center">{error}</p>{/* Added text-center */}
         <Button onClick={() => navigate('/')} className="bg-brand-magenta-600 hover:bg-brand-magenta-700 text-white font-medium">
           Go to Home
         </Button>
@@ -244,11 +227,11 @@ export default function ManageAdsPage() {
         <div className="rounded-full bg-brand-magenta-100 p-6 mb-4">
           <ShoppingBag className="h-10 w-10 text-brand-magenta-600" />
         </div>
-        <h3 className="text-xl font-medium text-gray-900">No ads found</h3>
+        <h3 className="text-xl font-medium text-gray-900 text-center">No ads found</h3> {/* Added text-center */}
         <p className="text-gray-700 mt-2 mb-6 text-center">You haven't posted any ads yet. Start by creating one!</p>
         <Button
           onClick={() => navigate("/post-ad")}
-          className="bg-brand-magenta-600 hover:bg-brand-magenta-700 text-white font-medium"
+          className="bg-brand-magenta-600 hover:bg-brand-magenta-700 text-white font-medium px-6 py-3 text-base" /* Larger button for better tap target */
         >
           <Plus className="mr-2 h-4 w-4" /> Create New Ad
         </Button>
@@ -257,19 +240,21 @@ export default function ManageAdsPage() {
   }
 
   return (
-    <main className="flex-1 py-12 px-4 md:px-6 bg-gray-100">
-      <div className="container mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Your Ads ({userAds.length})</h1>
+    <main className="flex-1 py-8 px-4 md:py-12 md:px-6 bg-gray-100 min-h-screen"> {/* Adjusted padding */}
+      <div className="container mx-auto max-w-7xl"> {/* Increased max-width for larger screens */}
+        <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4"> {/* Added gap, adjusted flex-direction for small screens */}
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 text-center sm:text-left w-full sm:w-auto"> {/* Adjusted text size and alignment */}
+            Your Ads ({userAds.length})
+          </h1>
           <Button
             onClick={() => navigate("/post-ad")}
-            className="bg-brand-magenta-600 hover:bg-brand-magenta-700 text-white font-medium"
+            className="w-full sm:w-auto bg-brand-magenta-600 hover:bg-brand-magenta-700 text-white font-medium px-6 py-3 text-base" // Ensure button is responsive
           >
             <Plus className="mr-2 h-4 w-4" /> Create New Ad
           </Button>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"> {/* Adjusted grid cols for better flow on smaller screens */}
           {userAds.map((ad) => (
             <Card key={ad._id} className="relative overflow-hidden h-full flex flex-col border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
               <div className="relative w-full h-48 bg-gray-200 flex-shrink-0">
@@ -279,36 +264,33 @@ export default function ManageAdsPage() {
                   className="w-full h-full object-cover"
                 />
                 {ad.featured && (
-                  <Badge className="absolute top-2 right-2 bg-brand-magenta-600 hover:bg-brand-magenta-600 text-white font-medium">
+                  <Badge className="absolute top-2 right-2 bg-brand-magenta-600 hover:bg-brand-magenta-600 text-white font-medium text-xs px-2 py-1"> {/* Smaller badge text */}
                     Featured
                   </Badge>
                 )}
               </div>
-              <CardHeader className="p-4 pb-2 flex-grow">
-                <CardTitle className="text-lg font-bold text-gray-900 line-clamp-2">{ad.title}</CardTitle>
-                <CardDescription className="text-sm text-gray-500">{ad.location}</CardDescription>
-                <p className="text-xl font-bold text-brand-magenta-600 mt-2">
+              <CardHeader className="p-3 pb-1 flex-grow"> {/* Adjusted padding */}
+                <CardTitle className="text-base font-bold text-gray-900 line-clamp-2 md:text-lg">{ad.title}</CardTitle> {/* Adjusted text size */}
+                <CardDescription className="text-xs text-gray-500">{ad.location}</CardDescription> {/* Adjusted text size */}
+                <p className="text-lg font-bold text-brand-magenta-600 mt-1 md:text-xl"> {/* Adjusted text size */}
                   {ad.price ?
-                    // Use ad.currency if available, otherwise default to 'Ksh.'
-                    // Use parseFloat to ensure the price is treated as a number
-                    // Use toLocaleString('en-KE') for proper comma formatting
                     `${ad.currency || 'Ksh.'} ${parseFloat(ad.price).toLocaleString('en-KE')}`
                     : 'Price negotiable'
                   }
                 </p>
               </CardHeader>
-              <CardContent className="p-4 pt-0">
+              <CardContent className="p-3 pt-0"> {/* Adjusted padding */}
                 <p className="text-xs text-gray-400">
                   Category: {ad.category || 'N/A'} {ad.subcategory && ` / ${ad.subcategory}`}
                 </p>
               </CardContent>
-              <CardFooter className="p-4 border-t border-gray-200 flex justify-end gap-2">
+              <CardFooter className="p-3 border-t border-gray-200 flex flex-wrap justify-end gap-1.5"> {/* flex-wrap for buttons, smaller gap */}
                 {/* Feature Ad Button - appears only if ad is NOT featured */}
                 {!ad.featured && (
                   <Button
                     variant="default"
                     size="sm"
-                    className="bg-green-600 hover:bg-green-700 text-white"
+                    className="bg-green-600 hover:bg-green-700 text-white text-xs px-2 py-1" /* Smaller button, adjusted padding */
                     onClick={() => confirmFeatureAd(ad._id)}
                   >
                     Feature Ad
@@ -317,25 +299,26 @@ export default function ManageAdsPage() {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="border-gray-300 text-gray-400 hover:bg-gray-200"
+                  className="border-gray-300 text-gray-400 hover:bg-gray-200 text-xs px-2 py-1"
                   onClick={() => navigate(`/listing/${ad._id}`)}
                 >
-                  <Eye className="h-4 w-4" />
+                  <Eye className="h-3.5 w-3.5" /> {/* Smaller icon */}
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
-                  className="border-gray-300 text-gray-400 hover:bg-gray-200"
+                  className="border-gray-300 text-gray-400 hover:bg-gray-200 text-xs px-2 py-1"
                   onClick={() => navigate(`/listings/${ad._id}`)}
                 >
-                  <Edit className="h-4 w-4" />
+                  <Edit className="h-3.5 w-3.5" /> {/* Smaller icon */}
                 </Button>
                 <Button
                   variant="destructive"
                   size="sm"
+                  className="text-xs px-2 py-1"
                   onClick={() => confirmDelete(ad._id)}
                 >
-                  <Trash2 className="h-4 w-4" />
+                  <Trash2 className="h-3.5 w-3.5" /> {/* Smaller icon */}
                 </Button>
               </CardFooter>
             </Card>
@@ -344,6 +327,7 @@ export default function ManageAdsPage() {
       </div>
 
       {/* Delete Confirmation AlertDialog */}
+      {/* AlertDialogs are generally responsive by default due to their fixed/centered positioning and width settings. */}
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -353,14 +337,14 @@ export default function ManageAdsPage() {
               and remove its data from our servers.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
+          <AlertDialogFooter className="flex-col-reverse sm:flex-row sm:justify-end gap-2"> {/* Responsive footer buttons */}
             <AlertDialogCancel asChild>
-              <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
+              <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)} className="w-full sm:w-auto">
                 Cancel
               </Button>
             </AlertDialogCancel>
             <AlertDialogAction asChild>
-              <Button variant="destructive" onClick={handleDeleteAd}>
+              <Button variant="destructive" onClick={handleDeleteAd} className="w-full sm:w-auto">
                 Continue
               </Button>
             </AlertDialogAction>
@@ -377,14 +361,14 @@ export default function ManageAdsPage() {
               Make your ad stand out! For just <span className="font-bold text-lg text-brand-magenta-600">Ksh {FEATURE_AD_AMOUNT}</span>, your ad will be featured for <span className="font-bold text-lg text-brand-magenta-600">{FEATURE_AD_DURATION}</span>. This will greatly increase its visibility and reach more potential buyers.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
+          <AlertDialogFooter className="flex-col-reverse sm:flex-row sm:justify-end gap-2"> {/* Responsive footer buttons */}
             <AlertDialogCancel asChild>
-              <Button variant="outline" onClick={() => { setIsFeatureConfirmationOpen(false); setAdToFeatureId(null); }}>
+              <Button variant="outline" onClick={() => { setIsFeatureConfirmationOpen(false); setAdToFeatureId(null); }} className="w-full sm:w-auto">
                 Cancel
               </Button>
             </AlertDialogCancel>
             <AlertDialogAction asChild>
-              <Button onClick={handleFeatureAd}>
+              <Button onClick={handleFeatureAd} className="w-full sm:w-auto">
                 Pay Now
               </Button>
             </AlertDialogAction>

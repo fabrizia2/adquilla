@@ -267,27 +267,33 @@ export default function RootLayout() {
 
       {/* --- */}
       <footer className="border-t bg-white">
-        <div className="container mx-auto flex flex-col gap-8 py-8 md:flex-row md:gap-12 md:py-12 px-4">
+        {/* Main footer container: Adjusted horizontal padding for all screen sizes */}
+        <div className="container mx-auto flex flex-col gap-8 py-8 md:flex-row md:gap-12 md:py-12 px-4 sm:px-6 lg:px-8">
           {/* Brand Info */}
-          <div className="flex flex-col gap-2 md:gap-4 lg:gap-6 items-center md:items-start text-center md:text-left">
+          <div className="flex flex-col gap-2 md:gap-4 lg:gap-6 items-center md:items-start text-center md:text-left flex-shrink-0"> {/* flex-shrink-0 to prevent brand info from squishing */}
             <Link to="/" className="flex items-center space-x-2 md:space-x-3">
               <img
-                src={logo}
+                src={logo} // Assuming 'logo' variable is defined and imported
                 alt="Adaquila Logo"
-                className="h-16 w-16 md:h-20 md:w-20 rounded-full object-cover"
+                className="h-16 w-16 md:h-20 md:w-20 lg:h-24 lg:w-24 rounded-full object-cover" // Slightly larger for large screens
               />
-              <span className="text-xl md:text-2xl font-bold text-pink-600">
+              <span className="text-xl md:text-2xl lg:text-3xl font-bold text-pink-600"> {/* Larger text for larger screens */}
                 Adaquila
               </span>
             </Link>
-            <p className="text-sm md:text-base text-gray-700 font-medium max-w-xs">
+            <p className="text-sm md:text-base lg:text-lg text-gray-700 font-medium max-w-xs sm:max-w-none"> {/* Increased text size, removed max-w-xs on sm+ */}
               Powering Ads, Elevating Brands
             </p>
           </div>
 
-          {/* Footer Navigation Grid */}
-          <div className="grid flex-1 grid-cols-2 gap-y-6 gap-x-4 sm:grid-cols-4 md:gap-8 text-center sm:text-left">
+          {/* Footer Navigation Grid: More granular control over columns */}
+          {/* By default, 1 column on extra small, 2 on small, 3 on medium, 4 on large screens */}
+          <div className="grid flex-1 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-y-6 gap-x-4 sm:gap-x-6 md:gap-x-8 text-center sm:text-left"> {/* Added sm:gap-x-6 */}
+            
+            {/* Uncomment these sections once you have content for them */}
+
             {/* Categories in Footer */}
+            {/*
             <div className="space-y-3">
               <h3 className="text-base font-medium text-gray-900 mb-2">Categories</h3>
               <ul className="space-y-2 text-sm">
@@ -303,8 +309,10 @@ export default function RootLayout() {
                 ))}
               </ul>
             </div>
+            */}
 
             {/* Company */}
+            {/*
             <div className="space-y-3">
               <h3 className="text-base font-medium text-gray-900 mb-2">Company</h3>
               <ul className="space-y-2 text-sm">
@@ -318,8 +326,10 @@ export default function RootLayout() {
                 ))}
               </ul>
             </div>
+            */}
 
             {/* Legal */}
+            {/*
             <div className="space-y-3">
               <h3 className="text-base font-medium text-gray-900 mb-2">Legal</h3>
               <ul className="space-y-2 text-sm">
@@ -333,20 +343,18 @@ export default function RootLayout() {
                 ))}
               </ul>
             </div>
+            */}
 
-            {/* Help */}
-            <div className="space-y-3">
-              <h3 className="text-base font-medium text-gray-900 mb-2">Help</h3>
-              <ul className="space-y-2 text-sm">
-                {[
-                  { to: "/faq", label: "FAQ" },
-                  { to: "/support", label: "Support" },
-                  { to: "/guides", label: "Guides" },
-                  { to: "/tutorials", label: "Tutorials" },
-                ].map(({ to, label }) => (
-                  <li key={label}><Link to={to} className="text-gray-700 hover:text-pink-600 hover:underline">{label}</Link></li>
-                ))}
-              </ul>
+          </div>
+        </div>
+
+        {/* Copyright Bar: Added as a separate section below the main footer content */}
+        <div className="container mx-auto border-t border-gray-200 py-4 px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row justify-between items-center text-center md:text-left gap-2 text-xs text-gray-600">
+            <p className="order-2 md:order-1">© {new Date().getFullYear()} Adaquila. All rights reserved.</p>
+            <div className="flex gap-4 order-1 md:order-2">
+              <Link to="#" className="hover:underline underline-offset-4">Terms of Service</Link>
+              <Link to="#" className="hover:underline underline-offset-4">Privacy</Link>
             </div>
           </div>
         </div>

@@ -5,21 +5,23 @@ import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { Checkbox } from "../../components/ui/checkbox";
 import { ShoppingBag } from "../../components/icons";
-import { AuthContext } from "../../layouts/AuthProvider";
-import { Eye, EyeOff } from "lucide-react"; // Import Eye and EyeOff icons
+import { AuthContext } from "../../layouts/AuthProvider"; // Correct path to your AuthProvider
+import { Eye, EyeOff } from "lucide-react";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
-  const [showPassword, setShowPassword] = useState(false); // New state for password visibility
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
+  // Get the login function from your AuthContext
   const { login } = useContext(AuthContext);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError(""); // Clear previous errors
 
     try {
       const response = await fetch("https://backend-nhs9.onrender.com/api/auth/login", {
@@ -33,17 +35,21 @@ export default function LoginPage() {
       const data = await response.json();
 
       if (!response.ok) {
+        // If backend sends an error message, use it; otherwise, a generic one
         throw new Error(data.message || "Login failed");
       }
 
-      login(data.user);
-      localStorage.setItem("token", data.token);
+      // --- CRITICAL CHANGE HERE ---
+      // Pass BOTH user data and the token to the login function from AuthContext
+      login(data.user, data.token); 
+      // The AuthProvider's login function now handles saving to localStorage for both user and token.
+      // So, you can remove: localStorage.setItem("token", data.token);
 
       console.log("Login successful:", data);
-      navigate("/");
+      navigate("/"); // Redirect to the home page or dashboard
     } catch (err) {
       console.error("Login error:", err);
-      setError(err.message);
+      setError(err.message); // Display the error message to the user
     }
   };
 
@@ -96,17 +102,16 @@ export default function LoginPage() {
                 <div className="relative">
                   <Input
                     id="password"
-                    // Conditionally set type based on showPassword state
                     type={showPassword ? "text" : "password"}
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="pr-10" // Add padding to the right for the icon
+                    className="pr-10"
                   />
                   <Button
-                    type="button" // Important: Prevent form submission
-                    variant="ghost" // Make it look like a floating icon
+                    type="button"
+                    variant="ghost"
                     size="sm"
                     className="absolute inset-y-0 right-0 h-full px-3 py-0 flex items-center text-gray-500 hover:bg-transparent"
                     onClick={togglePasswordVisibility}

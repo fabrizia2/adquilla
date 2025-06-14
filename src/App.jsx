@@ -146,7 +146,7 @@ export default function App() {
               {/* NEW: Route for editing a listing - Ensure this path is unique and not conflicting with /listing/:id */}
               {/* It's good practice to have edit routes under /manage-ads/edit/:id or similar */}
               <Route
-                path="edit-listing/:id" // Changed from 'listings/:id' to 'edit-listing/:id' to avoid conflict
+                path="/listings/:id" // Changed from 'listings/:id' to 'edit-listing/:id' to avoid conflict
                 element={
                   <ProtectedRoute>
                     <EditListingPage /> {/* Render the new EditListingPage component */}
