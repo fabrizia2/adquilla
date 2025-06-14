@@ -57,16 +57,34 @@ export default function ListingPage() {
   };
 
   // Handler for "Message Seller" button
-  const handleMessageSeller = () => {
-    if (listingData?.user?._id) { // Access user ID via listingData.user
-      console.log(`Navigating to chat with seller ID: ${listingData.user._id}`);
-      toast.info(`Simulating message to seller ${listingData.user._id}.`);
-      // In a real application, you would navigate to a chat page like:
-      // navigate(`/chat/${listingData.user._id}`);
-    } else {
-      toast.error("Cannot message seller: User ID not available.");
-    }
-  };
+const handleMessageSeller = () => {
+  // Ensure listingData and user and phoneNumber exist
+  if (listingData?.user?.phoneNumber) { 
+    const phoneNumber = listingData.user.phoneNumber;
+
+    // Optional: Pre-fill a message for the user
+    // Encode the message to ensure it's URL-safe
+    const prefilledMessage = encodeURIComponent(
+      `Hello, I'm interested in your listing: "${listingData.title}".`
+    );
+
+    // Construct the WhatsApp URL
+    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${prefilledMessage}`;
+
+    console.log(`Redirecting to WhatsApp for phone number: ${phoneNumber}`);
+    console.log(`WhatsApp URL: ${whatsappUrl}`);
+
+    // Open WhatsApp in a new tab/window
+    window.open(whatsappUrl, '_blank');
+
+    toast.success("Opening WhatsApp to message the seller!");
+
+  } else {
+    // If phone number is not available, provide feedback
+    toast.error("Cannot message seller: Phone number not available for this listing.");
+    console.error("Seller's phone number is missing from listingData.user.");
+  }
+};
 
   // Handler for "Save" button
   const handleSaveListing = () => {
@@ -180,7 +198,10 @@ export default function ListingPage() {
 
             <div className="space-y-4">
               <h2 className="text-xl font-bold text-gray-700">Description</h2>
-              <p className="text-gray-500 leading-relaxed">{listingData.description || 'No description provided.'}</p>
+              {/* Add the 'whitespace-pre-wrap' class here */}
+              <p className="text-gray-500 leading-relaxed whitespace-pre-wrap">
+                {listingData.description || 'No description provided.'}
+              </p>
             </div>
 
           </div>
