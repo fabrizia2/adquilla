@@ -7,8 +7,8 @@ import { AuthContext } from '../../layouts/AuthProvider';
 import { Button } from "../../components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "../../components/ui/card";
 import { Badge } from "../../components/ui/badge";
-import { Plus, Edit, Trash2, Eye } from "../../components/icons"; // Assuming ShoppingBag is exported from icons or lucide-react
-import { ShoppingBag } from "lucide-react"; // Make sure ShoppingBag is imported if from lucide-react
+import { Plus, Edit, Trash2, Eye } from "../../components/icons";
+import { ShoppingBag } from "lucide-react";
 import { toast } from "react-hot-toast";
 
 import {
@@ -165,7 +165,7 @@ export default function ManageAdsPage() {
     };
 
     console.log("--- Sending to backend (Payment create-checkout-session) ---");
-    console.log("URL:", 'https://backend-nhs9.onrender.com/api/payments/create-checkout-session'); // Corrected endpoint
+    console.log("URL:", 'https://backend-nhs9.onrender.com/api/payments/create-checkout-session');
     console.log("Method:", 'POST');
     console.log("Headers:", {
       'Content-Type': 'application/json',
@@ -175,7 +175,7 @@ export default function ManageAdsPage() {
     console.log("--- End of backend request log ---");
 
     try {
-      const response = await fetch('https://backend-nhs9.onrender.com/api/payments/create-checkout-session', { // Corrected endpoint
+      const response = await fetch('https://backend-nhs9.onrender.com/api/payments/create-checkout-session', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -200,13 +200,13 @@ export default function ManageAdsPage() {
       const responseData = await response.json();
       console.log("Payment initialization response:", responseData);
 
-      // CRITICAL: Use responseData.data.link for redirection as provided by your backend/payment gateway
-      if (responseData.data && responseData.data.url) {
+      // CRITICAL FIX: Changed from responseData.data && responseData.data.link to just responseData.url
+      if (responseData.url) { // CORRECTED: Check directly for 'url'
         toast.success("Redirecting to payment gateway...", { id: `featureAd-${adToFeatureId}` });
-        window.location.href = responseData.data.url; // Redirect to the payment gateway
+        window.location.href = responseData.url; // Redirect to the payment gateway
       } else {
         toast.error("Payment initiated, but no redirect URL received from the server. Please check your backend's response structure.", { id: `featureAd-${adToFeatureId}` });
-        console.error("Backend response missing 'data.link':", responseData);
+        console.error("Backend response missing 'url':", responseData); // Updated error message
       }
 
     } catch (err) {
@@ -288,7 +288,13 @@ export default function ManageAdsPage() {
                 <CardTitle className="text-lg font-bold text-gray-900 line-clamp-2">{ad.title}</CardTitle>
                 <CardDescription className="text-sm text-gray-500">{ad.location}</CardDescription>
                 <p className="text-xl font-bold text-brand-magenta-600 mt-2">
-                  {ad.price ? `Ksh ${ad.price.toLocaleString()}` : 'Price negotiable'}
+                  {ad.price ?
+                    // Use ad.currency if available, otherwise default to 'Ksh.'
+                    // Use parseFloat to ensure the price is treated as a number
+                    // Use toLocaleString('en-KE') for proper comma formatting
+                    `${ad.currency || 'Ksh.'} ${parseFloat(ad.price).toLocaleString('en-KE')}`
+                    : 'Price negotiable'
+                  }
                 </p>
               </CardHeader>
               <CardContent className="p-4 pt-0">

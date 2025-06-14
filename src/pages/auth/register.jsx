@@ -1,12 +1,12 @@
-// src/pages/auth/register.jsx
 "use client"
 
 import { useState } from "react"
-import { Link, useNavigate } from "react-router-dom" // CORRECTED IMPORT PATH
+import { Link, useNavigate } from "react-router-dom"
 import { Button } from "../../components/ui/button"
 import { Input } from "../../components/ui/input"
 import { Label } from "../../components/ui/label"
 import { Checkbox } from "../../components/ui/checkbox"
+import { Eye, EyeOff } from "lucide-react" // Import Eye and EyeOff icons
 
 export default function RegisterPage() {
   const [firstName, setFirstName] = useState("")
@@ -15,8 +15,12 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const [location, setLocation] = useState("")
+  const [phoneNumber, setPhoneNumber] = useState("")
   const [agreeTerms, setAgreeTerms] = useState(false)
   const [error, setError] = useState("")
+  // New state variables for password visibility
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const navigate = useNavigate()
 
   const handleSubmit = async (e) => {
@@ -43,6 +47,7 @@ export default function RegisterPage() {
           email,
           password,
           location,
+          phoneNumber,
         }),
       })
 
@@ -59,6 +64,15 @@ export default function RegisterPage() {
       console.error("Registration error:", err)
       setError(err.message)
     }
+  }
+
+  // Toggle functions for password visibility
+  const togglePasswordVisibility = () => {
+    setShowPassword((prev) => !prev)
+  }
+
+  const toggleConfirmPasswordVisibility = () => {
+    setShowConfirmPassword((prev) => !prev)
   }
 
   return (
@@ -101,6 +115,18 @@ export default function RegisterPage() {
                 required
               />
             </div>
+            {/* Phone Number Input */}
+            <div className="space-y-2">
+              <Label htmlFor="phoneNumber" className="text-gray-800">Phone Number</Label>
+              <Input
+                id="phoneNumber"
+                type="tel"
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
+                placeholder="e.g., +254712345678"
+                required
+              />
+            </div>
             <div className="space-y-2">
               <Label htmlFor="location" className="text-gray-800">Location</Label>
               <Input
@@ -110,26 +136,57 @@ export default function RegisterPage() {
                 required
               />
             </div>
+
+            {/* Password Input with Toggle */}
             <div className="space-y-2">
               <Label htmlFor="password" className="text-gray-800">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="pr-10" // Add padding to the right for the icon
+                />
+                <Button
+                  type="button" // Important: Prevent form submission
+                  variant="ghost" // Make it look like a floating icon
+                  size="sm"
+                  className="absolute inset-y-0 right-0 h-full px-3 py-0 flex items-center text-gray-500 hover:bg-transparent"
+                  onClick={togglePasswordVisibility}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </Button>
+              </div>
             </div>
+
+            {/* Confirm Password Input with Toggle */}
             <div className="space-y-2">
               <Label htmlFor="confirm-password" className="text-gray-800">Confirm Password</Label>
-              <Input
-                id="confirm-password"
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-              />
+              <div className="relative">
+                <Input
+                  id="confirm-password"
+                  type={showConfirmPassword ? "text" : "password"}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                  className="pr-10" // Add padding to the right for the icon
+                />
+                <Button
+                  type="button" // Important: Prevent form submission
+                  variant="ghost" // Make it look like a floating icon
+                  size="sm"
+                  className="absolute inset-y-0 right-0 h-full px-3 py-0 flex items-center text-gray-500 hover:bg-transparent"
+                  onClick={toggleConfirmPasswordVisibility}
+                  aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
+                >
+                  {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </Button>
+              </div>
             </div>
+
             <div className="flex items-center space-x-2">
               <Checkbox
                 id="terms"

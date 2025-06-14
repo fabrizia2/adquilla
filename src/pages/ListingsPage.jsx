@@ -202,9 +202,12 @@ export default function AllListingsPage() {
                 <h3 className="text-lg font-medium line-clamp-1 text-gray-800">{listing.title}</h3>
               </CardHeader>
               <CardContent className="p-4 pt-2">
-                <p className="text-xl font-bold text-brand-magenta-600">
-                  {listing.price ? `Ksh ${listing.price.toLocaleString()}` : "Price negotiable"}
-                </p>
+              <p className="text-xl font-bold text-brand-magenta-600">
+                {listing.price ?
+                  `${listing.currency || 'Ksh.'} ${parseFloat(listing.price).toLocaleString('en-KE')}`
+                  : "Price negotiable"
+                }
+              </p>
                 <p className="text-sm text-gray-600">{listing.location}</p>
               </CardContent>
               <CardFooter className="p-4 pt-0 border-t border-gray-200">

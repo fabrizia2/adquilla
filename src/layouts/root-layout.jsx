@@ -157,12 +157,7 @@ export default function RootLayout() {
                 </>
               ) : (
                 <>
-                  <Link
-                    to="/messages"
-                    className="flex items-center hover:text-pink-600 text-sm"
-                  >
-                    <FaEnvelope className="mr-1" /> Messages
-                  </Link>
+                  
                   <div className="relative">
                     <button
                       onClick={toggleMenu}
@@ -174,11 +169,7 @@ export default function RootLayout() {
                     {isMenuOpen && (
                       <div className="absolute right-0 mt-2 w-48 bg-gray-800 rounded-md shadow-lg py-1 z-20">
                         <Link to="/manage-ads" className="block px-4 py-2 text-sm text-white hover:bg-pink-600" onClick={() => setIsMenuOpen(false)}>Manage my Ads</Link>
-                        <Link to="/messages" className="block px-4 py-2 text-sm text-white hover:bg-pink-600" onClick={() => setIsMenuOpen(false)}>Messages</Link>
-                        <Link to="/favourites" className="block px-4 py-2 text-sm text-white hover:bg-pink-600" onClick={() => setIsMenuOpen(false)}>Favourites</Link>
-                        <Link to="/my-alerts" className="block px-4 py-2 text-sm text-white hover:bg-pink-600" onClick={() => setIsMenuOpen(false)}>My Alerts</Link>
                         <Link to="/my-details" className="block px-4 py-2 text-sm text-white hover:bg-pink-600" onClick={() => setIsMenuOpen(false)}>My Details</Link>
-                        <Link to="/manage-job-ads" className="block px-4 py-2 text-sm text-white hover:bg-pink-600" onClick={() => setIsMenuOpen(false)}>Manage my Job Ads</Link>
                         <Link to="/help-contact" className="block px-4 py-2 text-sm text-white hover:bg-pink-600" onClick={() => setIsMenuOpen(false)}>Help & Contact</Link>
                         <button onClick={handleLogout} className="block w-full text-left px-4 py-2 text-sm text-white hover:bg-pink-600">Logout</button>
                       </div>
@@ -241,11 +232,7 @@ export default function RootLayout() {
               ) : (
                 <>
                   <Link to="/manage-ads" className="hover:text-pink-600" onClick={toggleMenu}>Manage my Ads</Link>
-                  <Link to="/messages" className="hover:text-pink-600" onClick={toggleMenu}>Messages</Link>
-                  <Link to="/favourites" className="hover:text-pink-600" onClick={toggleMenu}>Favourites</Link>
-                  <Link to="/my-alerts" className="hover:text-pink-600" onClick={toggleMenu}>My Alerts</Link>
                   <Link to="/my-details" className="hover:text-pink-600" onClick={toggleMenu}>My Details</Link>
-                  <Link to="/manage-job-ads" className="hover:text-pink-600" onClick={toggleMenu}>Manage my Job Ads</Link>
                   <Link to="/help-contact" className="hover:text-pink-600" onClick={toggleMenu}>Help & Contact</Link>
                   <button onClick={handleLogout} className="text-left hover:text-pink-600">Logout</button>
                 </>

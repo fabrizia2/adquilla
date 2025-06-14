@@ -1,9 +1,9 @@
 // "use client" directive for Next.js app router, if applicable
 "use client";
 
-import React, { useState, useEffect, useContext } from "react"; // Import useEffect
-import { AuthContext } from "../layouts/AuthProvider"; // Adjust path if needed
-import { useNavigate, useParams } from "react-router-dom"; // Import useNavigate AND useParams
+import React, { useState, useEffect, useContext } from "react";
+import { AuthContext } from "../layouts/AuthProvider";
+import { useNavigate, useParams } from "react-router-dom";
 
 // shadcn/ui components
 import { Button } from "../components/ui/button";
@@ -13,7 +13,7 @@ import { Textarea } from "../components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
 
-// Custom icons - Make sure ImagePlus and XCircle are exported from here
+// Custom icons
 import { ImagePlus, XCircle } from "../components/icons";
 
 // --- Define your specific categories here (or import from a central file) ---
@@ -25,14 +25,23 @@ const fixedCategories = [
   "Pets",
   "Jobs",
   "Furniture",
-  "Electronics", // Added based on your request
-  "Others",     // Added based on your request
+  "Electronics",
+  "Others",
+];
+
+// --- Define your supported currencies here ---
+const supportedCurrencies = [
+  { code: "KES", name: "Kenyan Shilling (KES)", symbol: "Ksh" },
+  { code: "USD", name: "United States Dollar (USD)", symbol: "$" },
+  { code: "EUR", name: "Euro (EUR)", symbol: "€" },
+  { code: "GBP", name: "British Pound (GBP)", symbol: "£" },
+  // Add more currencies as needed
 ];
 // -------------------------------------------------------------------------
 
 export default function CreateListingPage() {
-  const { id } = useParams(); // Get the ID from the URL (will be undefined for new listings)
-  const { user, isAuthenticated, loadingAuth } = useContext(AuthContext); // Get isAuthenticated and loadingAuth
+  const { id } = useParams();
+  const { user, isAuthenticated, loadingAuth } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -40,20 +49,19 @@ export default function CreateListingPage() {
     description: "",
     category: "",
     price: "",
+    currency: "KES", // <--- NEW: Default to Kenyan Shilling
     location: "",
-    images: [], // Can hold File objects for new uploads, or URLs/filenames for existing
+    images: [],
   });
-  // imagePreviews will now handle both File object URLs and existing image URLs
   const [imagePreviews, setImagePreviews] = useState([]);
   const [statusMessage, setStatusMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [loadingInitialData, setLoadingInitialData] = useState(true); // New loading state for initial data fetch
-  const [isEditMode, setIsEditMode] = useState(false); // New state to track mode
-  const MAX_IMAGES = 10; // Define maximum number of images allowed
+  const [loadingInitialData, setLoadingInitialData] = useState(true);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const MAX_IMAGES = 10;
 
   // --- useEffect to handle initial data fetch for editing ---
   useEffect(() => {
-    // Wait for AuthProvider to finish loading authentication status
     if (loadingAuth) {
       return;
     }
@@ -61,15 +69,14 @@ export default function CreateListingPage() {
     if (!isAuthenticated) {
       setStatusMessage("You must be logged in to create or edit ads.");
       setLoadingInitialData(false);
-      // Optional: Redirect to login or home if not authenticated
-      navigate('/auth/login', { state: { from: window.location.pathname } }); // Corrected path and added state
+      navigate('/auth/login', { state: { from: window.location.pathname } });
       return;
     }
 
-    if (id) { // If an ID is present in the URL, we are in edit mode
+    if (id) {
       setIsEditMode(true);
-      setLoadingInitialData(true); // Set loading to true while fetching existing data
-      setStatusMessage(""); // Clear any previous status messages
+      setLoadingInitialData(true);
+      setStatusMessage("");
 
       const token = localStorage.getItem('token');
       const fetchListingData = async () => {
@@ -88,70 +95,67 @@ export default function CreateListingPage() {
 
           const data = await response.json();
 
-          // --- Security Check: Ensure the logged-in user owns this listing ---
-          // Assuming your backend sends the 'owner' field as the user's _id
           if (data.owner !== user?._id) {
             throw new Error("You are not authorized to edit this listing.");
           }
-          // ------------------------------------------------------------------
 
           setFormData({
             title: data.title || "",
             description: data.description || "",
             category: data.category || "",
             price: data.price || "",
+            currency: data.currency || "KES", // <--- NEW: Set currency from fetched data
             location: data.location || "",
-            // For images, we'll store their URLs from the backend directly
-            // New images added by the user will be File objects.
-            // The backend handles distinguishing between existing and new.
-            images: data.images || [], // Assuming backend returns array of image URLs
+            images: data.images || [],
           });
 
-          // Set image previews from the fetched URLs
           setImagePreviews(data.images || []);
 
         } catch (err) {
           console.error("Error fetching listing for edit:", err);
           setStatusMessage(`Error loading ad for editing: ${err.message}.`);
         } finally {
-          setLoadingInitialData(false); // Done loading initial data
+          setLoadingInitialData(false);
         }
       };
 
       fetchListingData();
     } else {
-      // Not in edit mode, so it's a new listing. Ensure form is reset and no initial loading.
       setIsEditMode(false);
       setLoadingInitialData(false);
       setFormData({
-        title: "", description: "", category: "", price: "", location: "", images: [],
+        title: "", description: "", category: "", price: "",
+        currency: "KES", // <--- NEW: Ensure default currency for new listings
+        location: "", images: [],
       });
       setImagePreviews([]);
     }
-  }, [id, user, isAuthenticated, loadingAuth, navigate]); // Dependencies for useEffect
+  }, [id, user, isAuthenticated, loadingAuth, navigate]);
 
-  // Handles changes for all input fields (text, number)
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Handles changes specifically for the Select component (category)
   const handleCategoryChange = (value) => {
     setFormData((prev) => ({ ...prev, category: value }));
   };
 
-  // Handles multiple file input change
+  // <--- NEW: Handle currency change ---
+  const handleCurrencyChange = (value) => {
+    setFormData((prev) => ({ ...prev, currency: value }));
+  };
+  // ------------------------------------
+
   const handleFileChange = (e) => {
     const selectedFiles = Array.from(e.target.files);
-    // Count existing image URLs (strings) and new File objects that are currently in formData.images
     const currentImagesCount = formData.images.filter(img => typeof img === 'string' || typeof img === 'object').length;
     const filesToTake = Math.min(selectedFiles.length, MAX_IMAGES - currentImagesCount);
 
     if (filesToTake === 0 && currentImagesCount === MAX_IMAGES) {
       setStatusMessage(`Error: You can upload a maximum of ${MAX_IMAGES} images.`);
       setTimeout(() => setStatusMessage(""), 3000);
-      e.target.value = ''; // Clear the file input
+      e.target.value = '';
       return;
     }
 
@@ -159,26 +163,21 @@ export default function CreateListingPage() {
 
     setFormData((prev) => ({
       ...prev,
-      images: [...prev.images, ...newFiles], // Add new File objects
+      images: [...prev.images, ...newFiles],
     }));
 
-    // Generate URLs for new files for preview
     const newPreviews = newFiles.map(file => URL.createObjectURL(file));
     setImagePreviews((prev) => [...prev, ...newPreviews]);
 
-    e.target.value = ''; // Clear the file input after selection
+    e.target.value = '';
   };
 
-
-  // Handles removing an individual image preview
   const handleRemoveImage = (indexToRemove) => {
     const updatedImages = formData.images.filter((_, index) => index !== indexToRemove);
     const updatedImagePreviews = imagePreviews.filter((_, index) => index !== indexToRemove);
 
-    // Revoke URL only if it was a dynamically created URL (from a File object)
-    // Existing image URLs from the backend don't need to be revoked.
     if (typeof formData.images[indexToRemove] === 'object' && imagePreviews[indexToRemove].startsWith('blob:')) {
-        URL.revokeObjectURL(imagePreviews[indexToRemove]);
+      URL.revokeObjectURL(imagePreviews[indexToRemove]);
     }
 
     setFormData((prev) => ({
@@ -188,14 +187,13 @@ export default function CreateListingPage() {
     setImagePreviews(updatedImagePreviews);
   };
 
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-    setStatusMessage(""); // Clear previous status messages
+    setStatusMessage("");
 
     // Basic validation
-    if (!formData.title || !formData.description || !formData.category || !formData.price || !formData.location || formData.images.length === 0) {
+    if (!formData.title || !formData.description || !formData.category || !formData.price || !formData.currency || !formData.location || formData.images.length === 0) { // <--- NEW: Added currency to validation
       setStatusMessage("Error: All fields and at least one image are required.");
       setIsSubmitting(false);
       return;
@@ -205,7 +203,7 @@ export default function CreateListingPage() {
     if (!token) {
       setStatusMessage("Error: Not authenticated. Please log in.");
       setIsSubmitting(false);
-      navigate('/auth/login', { state: { from: window.location.pathname } }); // Redirect to login if token is missing
+      navigate('/auth/login', { state: { from: window.location.pathname } });
       return;
     }
 
@@ -214,20 +212,19 @@ export default function CreateListingPage() {
     form.append("description", formData.description);
     form.append("category", formData.category);
     form.append("price", formData.price);
+    form.append("currency", formData.currency); // <--- NEW: Append currency to FormData
     form.append("location", formData.location);
 
-    // Append images: new File objects will be sent, existing URLs will be sent as strings
     formData.images.forEach((item) => {
-      if (typeof item === 'object') { // It's a new file (File object)
+      if (typeof item === 'object') {
         form.append("images", item);
-      } else { // It's an existing image URL (string) from the backend
-        form.append("existingImages", item); // Your backend needs to handle this distinction
+      } else {
+        form.append("existingImages", item);
       }
     });
 
-    form.append("owner", user?._id); // Crucial for linking the ad to the authenticated user.
+    form.append("owner", user?._id);
 
-    // --- DEBUGGING LOG ---
     console.log("--- FormData Contents for Backend ---");
     for (let [key, value] of form.entries()) {
       if (key === "images" && value instanceof File) {
@@ -237,7 +234,6 @@ export default function CreateListingPage() {
       }
     }
     console.log("-------------------------------------");
-    // --- END DEBUGGING LOG ---
 
     const apiUrl = isEditMode
       ? `https://backend-nhs9.onrender.com/api/listings/${id}`
@@ -250,9 +246,6 @@ export default function CreateListingPage() {
         method: method,
         headers: {
           Authorization: `Bearer ${token}`,
-          // IMPORTANT: Do NOT set 'Content-Type': 'multipart/form-data' here.
-          // The browser sets it automatically with the correct boundary
-          // when you send a FormData object as the body.
         },
         body: form,
       });
@@ -274,21 +267,19 @@ export default function CreateListingPage() {
       console.log(`Ad ${isEditMode ? 'updated' : 'posted'} successfully. Response:`, responseData);
       setStatusMessage(`Ad ${isEditMode ? 'updated' : 'posted'} successfully!`);
 
-      // Revoke all object URLs for new files to free up memory
       imagePreviews.filter(url => url.startsWith('blob:')).forEach(url => URL.revokeObjectURL(url));
 
-      // Reset form (only if creating, for editing we might want to stay on page or navigate)
       if (!isEditMode) {
         setFormData({
-          title: "", description: "", category: "", price: "", location: "", images: [],
+          title: "", description: "", category: "", price: "",
+          currency: "KES", // <--- NEW: Reset currency for new listing
+          location: "", images: [],
         });
         setImagePreviews([]);
       } else {
-        // For edit mode, refresh the data to show latest changes or navigate
-        // A simple way is to refetch, or just navigate back
-        navigate('/manage-ads'); // Redirect to manage ads page after successful update
+        navigate('/manage-ads');
       }
-      setTimeout(() => setStatusMessage(""), 3000); // Clear message after 3 seconds
+      setTimeout(() => setStatusMessage(""), 3000);
 
     } catch (error) {
       console.error(`Error ${isEditMode ? 'updating' : 'posting'} ad:`, error);
@@ -298,7 +289,6 @@ export default function CreateListingPage() {
     }
   };
 
-  // --- Conditional Render for Initial Loading ---
   if (loadingAuth || loadingInitialData) {
     return (
       <main className="flex-1 flex flex-col items-center justify-center py-12 px-4 bg-gray-100 min-h-[60vh]">
@@ -307,8 +297,7 @@ export default function CreateListingPage() {
     );
   }
 
-  // --- Conditional Render for Error ---
-  if (statusMessage.startsWith("Error") && !isSubmitting) { // Show error if not currently submitting
+  if (statusMessage.startsWith("Error") && !isSubmitting) {
     return (
       <main className="flex-1 flex flex-col items-center justify-center py-12 px-4 bg-gray-100 min-h-[60vh]">
         <p className="text-xl text-red-600 mb-4">{statusMessage}</p>
@@ -332,7 +321,7 @@ export default function CreateListingPage() {
             </p>
           </div>
 
-          {statusMessage && !statusMessage.startsWith("Error") && ( // Only show success/info messages here
+          {statusMessage && !statusMessage.startsWith("Error") && (
             <div
               className="mb-4 px-4 py-3 rounded bg-green-100 text-green-700 border border-green-400"
             >
@@ -365,7 +354,6 @@ export default function CreateListingPage() {
                       <SelectValue placeholder="Select a category" />
                     </SelectTrigger>
                     <SelectContent className="relative overflow-visible">
-                      {/* Dynamically render SelectItem components using fixedCategories */}
                       {fixedCategories.map((category) => (
                         <SelectItem key={category} value={category} className="relative overflow-visible">
                           {category}
@@ -374,18 +362,37 @@ export default function CreateListingPage() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="price">Price (Ksh)</Label>
-                  <Input
-                    id="price"
-                    name="price"
-                    type="number"
-                    placeholder="e.g., 39999"
-                    value={formData.price}
-                    onChange={handleChange}
-                    required
-                  />
+                {/* --- NEW: Price and Currency Inputs --- */}
+                <div className="grid grid-cols-2 gap-4"> {/* Use grid for price and currency side-by-side */}
+                  <div className="space-y-2">
+                    <Label htmlFor="price">Price</Label> {/* Removed "Ksh" from label */}
+                    <Input
+                      id="price"
+                      name="price"
+                      type="number"
+                      placeholder="e.g., 39999"
+                      value={formData.price}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="currency">Currency</Label>
+                    <Select value={formData.currency} onValueChange={handleCurrencyChange} required>
+                      <SelectTrigger id="currency">
+                        <SelectValue placeholder="Select currency" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {supportedCurrencies.map((currency) => (
+                          <SelectItem key={currency.code} value={currency.code}>
+                            {currency.name} ({currency.symbol})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
+                {/* --- END NEW: Price and Currency Inputs --- */}
                 <div className="space-y-2">
                   <Label htmlFor="location">Location</Label>
                   <Input
@@ -428,7 +435,6 @@ export default function CreateListingPage() {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
-                  {/* Display image previews */}
                   {imagePreviews.map((src, index) => (
                     <div key={index} className="relative aspect-square rounded-lg overflow-hidden border">
                       <img
@@ -449,8 +455,7 @@ export default function CreateListingPage() {
                     </div>
                   ))}
 
-                  {/* Upload area - visible only if max images not reached */}
-                  {imagePreviews.length < MAX_IMAGES && ( // Use imagePreviews.length for total count
+                  {imagePreviews.length < MAX_IMAGES && (
                     <div className="relative aspect-square flex flex-col items-center justify-center rounded-lg border border-dashed p-4 text-center cursor-pointer hover:bg-gray-50 transition-colors">
                       <input
                         id="file-upload"
@@ -458,7 +463,7 @@ export default function CreateListingPage() {
                         name="images"
                         accept="image/*"
                         onChange={handleFileChange}
-                        multiple // Allow multiple file selection
+                        multiple
                         className="absolute inset-0 opacity-0 cursor-pointer z-10"
                       />
                       <Label htmlFor="file-upload" className="flex flex-col items-center justify-center h-full w-full cursor-pointer">
@@ -473,8 +478,8 @@ export default function CreateListingPage() {
                     </div>
                   )}
                 </div>
-                {formData.images.length === 0 && ( // Still check formData.images for requirement
-                   <p className="text-sm text-red-500 mt-2">At least one image is required.</p>
+                {formData.images.length === 0 && (
+                  <p className="text-sm text-red-500 mt-2">At least one image is required.</p>
                 )}
               </CardContent>
             </Card>

@@ -88,7 +88,7 @@ export default function ForgotPasswordPage() {
                 Please check your email for the password reset link.
               </p>
               <Button asChild className="w-full bg-gray-800 hover:bg-gray-700 text-white">
-                <Link to="/login">Back to Login</Link>
+                <Link to="/auth/login">Back to Login</Link>
               </Button>
             </div>
           )}
@@ -96,7 +96,7 @@ export default function ForgotPasswordPage() {
         {!messageSent && (
           <CardFooter className="text-center text-sm text-gray-500">
             Remembered your password?{' '}
-            <Link to="/login" className="font-medium text-brand-magenta-600 hover:text-brand-magenta-700">
+            <Link to="/auth/login" className="font-medium text-brand-magenta-600 hover:text-brand-magenta-700">
               Log in
             </Link>
           </CardFooter>

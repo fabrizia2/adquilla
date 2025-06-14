@@ -30,6 +30,8 @@ export default function ListingPage() {
 
         const data = await response.json();
         setListingData(data);
+        console.log("Fetched listing data:", data); // Add this line
+        console.log("Seller user data:", data.user); // Add this line to specifically check the user object
       } catch (err) {
         console.error("Error fetching listing:", err);
         setError(`Failed to load listing: ${err.message}`);
@@ -46,7 +48,7 @@ export default function ListingPage() {
   // Handler for "Show Phone Number" button
   const handleShowPhoneNumber = () => {
     // Now consistently checking for 'phone'
-    if (listingData?.user?.phone) {
+    if (listingData?.user?.phoneNumber) {
       setShowPhoneNumber(prev => !prev); // Toggle visibility
       toast.success(showPhoneNumber ? "Phone number hidden" : "Phone number displayed!");
     } else {
@@ -148,7 +150,10 @@ export default function ListingPage() {
                 <span>Posted {listingData.postedDate || (listingData.createdAt ? new Date(listingData.createdAt).toLocaleDateString() : 'N/A')}</span>
               </div>
               <p className="text-2xl font-bold text-brand-magenta-600">
-                {listingData.price ? `Ksh.${listingData.price}` : 'Price not specified'}
+                {listingData.price ?
+                  `${listingData.currency || 'Ksh.'} ${parseFloat(listingData.price).toLocaleString('en-KE')}`
+                  : 'Price not specified'
+                }
               </p>
             </div>
 
@@ -190,7 +195,11 @@ export default function ListingPage() {
                   </div>
                   <div>
                     {/* Accessing user data from listingData.user (assuming backend populates it) */}
-                    <p className="font-medium text-gray-300">{listingData.user?.name || listingData.user?.username || 'Seller Name'}</p>
+                    <p className="font-medium text-gray-300">
+                      {listingData.user?.firstName && listingData.user?.lastName
+                        ? `${listingData.user.firstName} ${listingData.user.lastName}`
+                        : listingData.user?.username || 'Seller Name'}
+                    </p>
                     <p className="text-sm text-gray-400">
                       Member since{' '}
                       {listingData.user?.createdAt
