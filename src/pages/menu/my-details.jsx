@@ -18,6 +18,25 @@ export default function MyDetailsPage() {
 
   const BACKEND_URL = "https://backend-nhs9.onrender.com"; // Your backend URL
 
+  // --- Helper function to check if details have actually changed ---
+  const areDetailsChanged = (current, original) => {
+    if (!current || !original) return true; // If data is missing, treat as change or error
+
+    const fieldsToCompare = [
+      'firstName', 'lastName', 'email', 'location', 'address', 'city', 'country', 'phoneNumber'
+    ]; 
+
+    for (const field of fieldsToCompare) {
+      const currentValue = current[field] || '';
+      const originalValue = original[field] || '';
+
+      if (currentValue !== originalValue) {
+        return true; 
+      }
+    }
+    return false; 
+  };
+
   // --- 1. Fetch correct user details on component mount ---
   useEffect(() => {
     const fetchUserDetails = async () => {
@@ -28,8 +47,6 @@ export default function MyDetailsPage() {
       if (!user || !token) {
         setLoading(false);
         console.warn("User or token is missing from AuthContext. Cannot fetch details. Redirecting or showing error.");
-        // If user/token are genuinely missing, AuthProvider should typically handle login redirect.
-        // The error message "Could not load user details..." will be shown due to !userDetails.
         return;
       }
 
@@ -50,28 +67,26 @@ export default function MyDetailsPage() {
         if (!response.ok) {
           if (response.status === 401) { // Unauthorized, token expired
             toast.error("Your session has expired. Please log in again.");
-            logout(); // Log out the user
+            logout(); 
             navigate('/auth/login');
             console.error("401 Unauthorized: Session expired. Redirected to login.");
             return;
           }
-          const errorResponseText = await response.text(); // Get the raw response text for debugging
+          const errorResponseText = await response.text(); 
           console.error(`Fetch not OK. Status: ${response.status}. Raw response text:`, errorResponseText);
           throw new Error(`Failed to fetch user details. Status: ${response.status}. Message: ${errorResponseText || 'No specific error message from backend'}`);
         }
 
-        const data = await response.json(); // Attempt to parse response as JSON
+        const data = await response.json(); 
         console.log("Successfully parsed JSON data from backend:", data);
 
-        // Crucial Check: Ensure the parsed data is not empty or malformed
         if (!data || typeof data !== 'object' || Object.keys(data).length === 0) {
             console.error("Received empty, null, or non-object data from backend for user details.");
             throw new Error("Received empty or invalid user data from backend.");
         }
 
-        // FIX APPLIED: Set userDetails directly from 'data' as backend is not nesting
         setUserDetails(data);
-        setOriginalUserDetails(data);
+        setOriginalUserDetails(data); 
         console.log("User details successfully set to state:", data);
 
       } catch (error) {
@@ -84,7 +99,7 @@ export default function MyDetailsPage() {
     };
 
     fetchUserDetails();
-  }, [user, token, navigate, logout]); // Re-fetch if user or token changes
+  }, [user, token, navigate, logout]); 
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -97,9 +112,9 @@ export default function MyDetailsPage() {
 
   // --- 2. Use an Edit API (PUT request) ---
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setSubmitting(true);
-    console.log("--- Starting handleSubmit (Update User) ---");
+    e.preventDefault(); 
+    setSubmitting(true); 
+    console.log("--- handleSubmit triggered! --- Event:", e); 
     console.log("User details being sent for update:", userDetails);
 
     if (!userDetails || !token) {
@@ -109,8 +124,15 @@ export default function MyDetailsPage() {
       return;
     }
 
+    if (!areDetailsChanged(userDetails, originalUserDetails)) {
+      toast('No changes detected. Details are up-to-date.'); 
+      setIsEditing(false); 
+      setSubmitting(false);
+      console.log("No changes detected. Form not submitted to backend.");
+      return; 
+    }
+
     try {
-      // Confirmed PUT endpoint is /api/auth/me
       const response = await fetch(`${BACKEND_URL}/api/auth/me`, {
         method: 'PUT',
         headers: {
@@ -124,7 +146,13 @@ export default function MyDetailsPage() {
       console.log("Update API Response OK property:", response.ok);
 
       if (!response.ok) {
-        const errorData = await response.json(); // Attempt to parse error data
+        let errorData;
+        try {
+            errorData = await response.json(); 
+        } catch (jsonErr) {
+            errorData = { message: await response.text() || 'No specific error message from backend' }; 
+        }
+        
         if (response.status === 401) {
           toast.error("Your session has expired. Please log in again.");
           logout();
@@ -136,18 +164,15 @@ export default function MyDetailsPage() {
         throw new Error(errorData.message || 'Failed to update details');
       }
 
-      const updatedData = await response.json(); // Get updated user data from response
+      const updatedData = await response.json(); 
       toast.success('Details updated successfully!');
       setIsEditing(false);
       console.log("Update successful. New data from backend:", updatedData);
 
-      // FIX APPLIED: Set userDetails directly from 'updatedData'
       setUserDetails(updatedData);
-      setOriginalUserDetails(updatedData);
+      setOriginalUserDetails(updatedData); 
 
-      // Update user in AuthContext if such a function exists
       if (updateUserInContext) {
-        // FIX APPLIED: Pass updatedData directly to AuthContext
         updateUserInContext(updatedData);
         console.log("User updated in AuthContext.");
       }
@@ -156,7 +181,7 @@ export default function MyDetailsPage() {
       toast.error(`Error updating details: ${error.message}`);
       console.error('Catch block error during handleSubmit:', error);
     } finally {
-      setSubmitting(false);
+      setSubmitting(false); 
       console.log("--- handleSubmit finished ---");
     }
   };
@@ -176,9 +201,6 @@ export default function MyDetailsPage() {
       setDeleting(true);
       console.log("User confirmed account deletion.");
       try {
-        // IMPORTANT CHECK: Ensure this DELETE endpoint matches your backend's actual route.
-        // You listed /api/auth/me in your description, but your previous code had /api/users/me.
-        // I'm assuming /api/auth/me for consistency with GET/PUT, but verify this on your backend.
         const response = await fetch(`${BACKEND_URL}/api/auth/me`, {
           method: 'DELETE',
           headers: {
@@ -191,7 +213,13 @@ export default function MyDetailsPage() {
         console.log("Delete API Response OK property:", response.ok);
 
         if (!response.ok) {
-          const errorData = await response.json();
+          let errorData;
+          try {
+              errorData = await response.json(); 
+          } catch (jsonErr) {
+              errorData = { message: await response.text() || 'No specific error message from backend' }; 
+          }
+
           if (response.status === 401) {
             toast.error("Your session has expired. Please log in again.");
             logout();
@@ -205,8 +233,8 @@ export default function MyDetailsPage() {
 
         toast.success('Account deleted successfully! Redirecting...');
         setDeleting(false);
-        logout(); // Log out the user from AuthContext
-        navigate('/'); // Redirect to homepage or login page
+        logout(); 
+        navigate('/'); 
         console.log("Account deleted and user logged out. Redirecting to home.");
       } catch (error) {
         toast.error(`Error deleting account: ${error.message}`);
@@ -224,23 +252,21 @@ export default function MyDetailsPage() {
     return <p className="text-center mt-10 text-gray-700">Loading your details...</p>;
   }
 
-  // This is the condition that's being met, causing the error message
   if (!userDetails) {
     console.error("Rendering: userDetails is null/undefined after loading finished. Displaying error message.");
     return <p className="text-center mt-10 text-red-600">Could not load user details. Please try logging in again.</p>;
   }
 
   console.log("Rendering: User details are available, displaying form.");
-  // Determine which fields to display/edit for contact details
   const contactFields = [
     { label: 'First name', name: 'firstName' },
     { label: 'Last name', name: 'lastName' },
-    { label: 'Email', name: 'email' }, // Assuming email can be edited
+    { label: 'Email', name: 'email' },
     { label: 'Location', name: 'location' },
-    { label: 'Address', name: 'address' },
-    { label: 'City', name: 'city' },
-    { label: 'Country', name: 'country' },
+    
   ];
+
+  console.log("Rendering Save Changes button. isEditing:", isEditing, "submitting:", submitting);
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
@@ -263,7 +289,7 @@ export default function MyDetailsPage() {
           </div>
           <div>
             <button
-              onClick={() => console.log("Navigate to user profile")} // Replace with actual navigation to public profile
+              onClick={() => console.log("Navigate to user profile")}
               className="border border-teal-600 text-teal-600 px-4 py-2 rounded-md hover:bg-teal-50 transition duration-200"
             >
               View profile
@@ -288,13 +314,13 @@ export default function MyDetailsPage() {
                   </p>
                 ) : (
                   <input
-                    type={name === 'email' ? 'email' : 'text'} // Use email type for email input
+                    type={name === 'email' ? 'email' : 'text'}
                     id={name}
                     name={name}
                     value={userDetails[name] || ''}
                     onChange={handleChange}
                     className="shadow-sm border rounded w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-1 focus:ring-pink-500"
-                    required={name === 'firstName' || name === 'lastName' || name === 'email'} // Make essential fields required
+                    required={name === 'firstName' || name === 'lastName' || name === 'email'}
                   />
                 )}
               </div>
@@ -302,15 +328,15 @@ export default function MyDetailsPage() {
 
             {/* Contact number - special handling for 'Add contact number' link */}
             <div>
-              <label htmlFor="phonenumber" className="block text-gray-600 text-sm mb-1">
+              <label htmlFor="phoneNumber" className="block text-gray-600 text-sm mb-1">
                 Contact number
               </label>
               {!isEditing ? (
                 <p className="text-gray-800 text-lg font-medium">
-                  {userDetails.phoneNumber || ( // Assuming backend sends 'phonenumber'
+                  {userDetails.phoneNumber || (
                     <a href="#" className="text-teal-600 hover:underline" onClick={(e) => {
                       e.preventDefault();
-                      setIsEditing(true); // Allow adding phone number
+                      setIsEditing(true);
                     }}>
                       Add contact number
                     </a>
@@ -319,9 +345,9 @@ export default function MyDetailsPage() {
               ) : (
                 <input
                   type="tel"
-                  id="phonenumber" // Match backend's expected field name
-                  name="phonenumber"
-                  value={userDetails.phonenumber || ''} // Show empty string when adding
+                  id="phoneNumber"
+                  name="phoneNumber"
+                  value={userDetails.phoneNumber || ''}
                   onChange={handleChange}
                   className="shadow-sm border rounded w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-1 focus:ring-pink-500"
                   placeholder="e.g., +254712345678"
@@ -334,8 +360,13 @@ export default function MyDetailsPage() {
           <div className="mt-8 flex items-center justify-start space-x-3">
             {!isEditing ? (
               <button
-                type="button"
-                onClick={() => setIsEditing(true)}
+                type="button" 
+                onClick={(e) => { // Added 'e' parameter here
+                  e.preventDefault(); // Explicitly prevent default behavior
+                  setIsEditing(true);
+                  console.log("--- 'Edit contact details' button clicked. isEditing set to true. ---");
+                  console.log("Current 'submitting' state right after setting isEditing:", submitting);
+                }}
                 className="border border-teal-600 text-teal-600 px-6 py-2 rounded-md hover:bg-teal-50 transition duration-200 font-medium"
               >
                 Edit contact details
@@ -343,19 +374,19 @@ export default function MyDetailsPage() {
             ) : (
               <>
                 <button
-                  type="submit"
+                  type="submit" 
                   disabled={submitting}
-                  className="bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-5 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-5 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2 transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {submitting ? 'Saving...' : 'Save Changes'}
                 </button>
                 <button
-                  type="button"
+                  type="button" 
                   onClick={() => {
                     setIsEditing(false);
                     // Reset to original user data if changes were not saved
                     setUserDetails(originalUserDetails);
-                    toast.dismiss(); // Clear any pending toasts
+                    toast.dismiss(); 
                   }}
                   className="bg-gray-200 text-gray-800 font-bold py-2 px-5 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 transition duration-300"
                 >
